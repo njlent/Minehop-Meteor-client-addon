@@ -140,7 +140,11 @@ For issues, questions, or suggestions:
 - **Removed HUD features** (incompatible with Meteor Client's rendering system)
 - Added `MovementUtil.isFlying()` helper method
 - Cleaned up codebase and removed unused HUD-related code
-- Reduced JAR size from 70K to 54K
+- **NEW: Dynamic crouch physics** - Proper height adjustment when crouching/sneaking
+- **NEW: Dynamic friction system** - Different friction when crouching (0.85) vs normal movement
+- **IMPROVED: Simplified ladder logic** - Cleaner, more reliable ladder climbing mechanics
+- **FIXED: Status effects** - Proper support for Jump Boost, Slow Falling, and Levitation
+- Reduced JAR size to 53K
 
 ### Version 1.1.0
 - Initial Meteor addon release

@@ -50,8 +50,10 @@ public abstract class LivingEntityMixin extends Entity {
     @Shadow private int jumpingCooldown;
     @Shadow protected boolean jumping;
 
+    @Shadow protected abstract Vec3d applyClimbingSpeed(Vec3d velocity);
     @Shadow protected abstract float getJumpVelocity();
     @Shadow public abstract boolean isClimbing();
+    @Shadow public abstract boolean isGliding();
 
     @Shadow public abstract float getYaw(float tickDelta);
 
@@ -84,17 +86,16 @@ public abstract class LivingEntityMixin extends Entity {
         return null; // Placeholder - status effect checking needs API update
     }
 
-    protected boolean isFallFlying() {
-        return false; // Simplified - can be overridden in subclasses
-    }
-
     public float prevHeadYaw;
     public int stuckArrowTimer;
     protected float field_6215;
 
     private boolean wasOnGround;
-    private long boostTime = 0;
-    private long ladderReleaseTime = 0;
+    private boolean wasCrouching = false;
+    private static final float STAND_HEIGHT = 1.8f;
+    private static final float CROUCH_HEIGHT = 1.35f;
+    private double baseFriction;
+    private double activeFriction;
 
     public LivingEntityMixin(EntityType<?> type, World world) {
         super(type, world);
@@ -161,13 +162,24 @@ public abstract class LivingEntityMixin extends Entity {
         if (!this.canMoveVoluntarily() && !this.isLogicalSideForUpdatingMovement()) { return; }
 
         //Cancel override if not in plain walking state.
-        if (this.isTouchingWater() || this.isInLava() || this.isFallFlying()) { return; }
+        if (this.isTouchingWater() || this.isInLava() || this.isGliding()) { return; }
 
         //Cast to LivingEntity to access Entity methods
         LivingEntity self = (LivingEntity)(Object)this;
 
         //Disable on creative flying.
         if (this.getType() == EntityType.PLAYER && MovementUtil.isFlying((PlayerEntity) self)) { return; }
+
+        if (baseFriction == 0) {
+            baseFriction = ConfigWrapper.config.movement.sv_friction; // Save wtv friction player put in config
+            activeFriction = baseFriction; // Start with normal friction ( change l8r)
+        }
+
+        if (this.isSneaking()) {
+            activeFriction = 0.85; // seems correct
+        } else {
+            activeFriction = baseFriction;
+        }
 
         //Reverse multiplication done by the function that calls this one.
         this.sidewaysSpeed /= 0.98F;
@@ -184,18 +196,19 @@ public abstract class LivingEntityMixin extends Entity {
         float slipperiness = entityWorld.getBlockState(blockPos).getBlock().getSlipperiness();
         float friction = 1-(slipperiness*slipperiness);
 
+        boolean isCrouching = this.isSneaking();
+        if (isCrouching && !wasCrouching) {
+            // Check if there's room to "stand" before shifting up
+            if (entityWorld.isSpaceEmpty(this, this.getBoundingBox().expand(0.0, STAND_HEIGHT - CROUCH_HEIGHT, 0.0))) {
+                this.setPosition(this.getX(), this.getY() + (STAND_HEIGHT - CROUCH_HEIGHT), this.getZ());
+            }
+        }
+        wasCrouching = isCrouching;
+
         //
         //Apply Friction
         //
         boolean fullGrounded = this.wasOnGround && this.isOnGround(); //Allows for no friction 1-frame upon landing.
-        if (fullGrounded) {
-            if (!MinehopAddon.groundedList.contains(this.getNameForScoreboard())) {
-                MinehopAddon.groundedList.add(this.getNameForScoreboard());
-            }
-        }
-        else {
-            MinehopAddon.groundedList.remove(this.getNameForScoreboard());
-        }
         if (fullGrounded) {
             Vec3d velFin = this.getVelocity();
             Vec3d horFin = new Vec3d(velFin.x,0.0F,velFin.z);
@@ -203,7 +216,7 @@ public abstract class LivingEntityMixin extends Entity {
             if (speed > 0.001F) {
                 float drop = 0.0F;
 
-                drop += (speed * config.movement.sv_friction * friction);
+                drop += (speed * activeFriction * friction);
 
                 float newspeed = Math.max(speed - drop, 0.0F);
                 newspeed /= speed;
@@ -311,66 +324,15 @@ public abstract class LivingEntityMixin extends Entity {
             this.setVelocity(new Vec3d(newHorizontalVelocity.getX(), newVelocity.getY(), newHorizontalVelocity.getZ()));
         }
 
-        double ladderYaw = 0;
-        BlockState blockState = this.getBlockStateAtPos();
-        if (blockState.isIn(BlockTags.CLIMBABLE)) {
-            if (blockState.isOf(Blocks.LADDER)) {
-                Direction facing = blockState.get(HorizontalFacingBlock.FACING);
-                float rotation = switch(facing) {
-                    case SOUTH -> 180;
-                    case WEST -> 90;
-                    case EAST -> 270;
-                    default -> 0;
-                };
-                ladderYaw = normalizeAngle(rotation + 180);
-            }
-        }
-
-        this.setVelocity(applyClimbingSpeed(this.getVelocity(), fI, sI, ladderYaw, self));
+        this.setVelocity(this.applyClimbingSpeed(this.getVelocity()));
         this.move(MovementType.SELF, this.getVelocity());
 
         //u8
         //Ladder Logic
         //
         Vec3d preVel = this.getVelocity();
-        if (this.isClimbing()) {
-            if (jumping) {
-                if (entityWorld.getTime() < ladderReleaseTime || entityWorld.getTime() > ladderReleaseTime + 4) {
-                    Vec3d jumpDir = MovementUtil.movementInputToVelocity(new Vec3d(0.0F, 0.0F, -1.0F), 1.0F, (float) ladderYaw);
-
-                    Vec3d accelDir = jumpDir.multiply(0.25);
-
-                    preVel = preVel.add(accelDir);
-
-                    ladderReleaseTime = entityWorld.getTime();
-                }
-            }
-            else {
-                double ladderfI;
-                double entityYaw = normalizeAngle(this.getYaw());
-                double yawDif = normalizeAngle(entityYaw - ladderYaw);
-                if (yawDif < -45 && yawDif > -135) {
-                    ladderfI = -sI;
-                }
-                else if (yawDif < -135 || yawDif > 135) {
-                    ladderfI = -fI;
-                }
-                else if (yawDif < 135 && yawDif > 45) {
-                    ladderfI = sI;
-                }
-                else {
-                    ladderfI = fI;
-                }
-
-                if (ladderfI > 0.4) {
-                    ladderfI = 0.4;
-                }
-                else if (ladderfI < -0.35) {
-                    ladderfI = -0.35;
-                }
-
-                preVel = new Vec3d(preVel.x * 0.7F, ladderfI, preVel.z * 0.7F);
-            }
+        if ((this.horizontalCollision || this.jumping) && this.isClimbing()) {
+            preVel = new Vec3d(preVel.x * 0.7D, 0.2D, preVel.z * 0.7D);
         }
 
         //
@@ -459,47 +421,13 @@ public abstract class LivingEntityMixin extends Entity {
         return angle;
     }
 
-    @Unique
-    private Vec3d applyClimbingSpeed(Vec3d motion, double fI, double sI, double ladderYaw, LivingEntity self) {
-        if (this.isClimbing() && !this.jumping) {
-            this.onLanding();
-            double d = 0;
-            if (!(ladderYaw == 90 || ladderYaw == -90)) {
-                 d = MathHelper.clamp(motion.x, -0.35000000596046448, 0.35000000596046448);
-            }
-            double e = 0;
-            if (!(ladderYaw == 180 || ladderYaw == -180 || ladderYaw == 0)) {
-                e = MathHelper.clamp(motion.z, -0.35000000596046448, 0.35000000596046448);
-            }
-            double g = motion.y;
-            if (g < 0.0 && self instanceof PlayerEntity && fI == 0 && sI == 0) {
-                g = 0.0;
-            }
-
-            motion = new Vec3d(d, g, e);
+    @Override
+    public EntityDimensions getDimensions(EntityPose pose) {
+        EntityDimensions original = super.getDimensions(pose);
+        if (this.isSneaking()) {
+            return EntityDimensions.changing(original.width(), CROUCH_HEIGHT);
         }
-        else if (this.isClimbing() && this.jumping) {
-            this.onLanding();
-            double d = motion.x;
-            if (ladderYaw == 90) {
-                d = MathHelper.clamp(motion.x, 0, 1000000);
-            }
-            else if (ladderYaw == -90) {
-                d = MathHelper.clamp(motion.x, -1000000, 0);
-            }
-            double e = motion.z;
-            if (ladderYaw == 180 || ladderYaw == -180) {
-                e = MathHelper.clamp(motion.z, 0, 1000000);
-            }
-            else if (ladderYaw == 0) {
-                e = MathHelper.clamp(motion.z, -1000000, 0);
-            }
-            double g = motion.y;
-
-            motion = new Vec3d(d, g, e);
-        }
-
-        return motion;
+        return original;
     }
 
     @Inject(method = "jump", at = @At("HEAD"), cancellable = true)
