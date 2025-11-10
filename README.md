@@ -85,8 +85,8 @@ All settings can be adjusted in the Meteor GUI under Movement > Bunnyhopping:
 ### Steps
 ```bash
 # Clone the repository
-git clone https://github.com/njlent/minehop.git
-cd minehop
+git clone https://github.com/njlent/minehop-Meteor-client-addon.git
+cd minehop-Meteor-client-addon
 
 # Build the project
 ./gradlew build
