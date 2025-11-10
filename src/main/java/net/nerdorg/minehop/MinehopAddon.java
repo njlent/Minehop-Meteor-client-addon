@@ -131,6 +131,18 @@ public class MinehopAddon extends MeteorAddon {
         // Register HUD
         // TODO: Re-enable when client code is fixed
         // Hud.get().register(SqueedometerHud.INFO);
+
+        // Register client tick event for jump tracking
+        ClientTickEvents.END_CLIENT_TICK.register(client -> {
+            if (client.player != null) {
+                if (client.options.jumpKey.isPressed()) {
+                    jumping = true;
+                }
+                else {
+                    jumping = false;
+                }
+            }
+        });
     }
 
     private void initializeClient() {

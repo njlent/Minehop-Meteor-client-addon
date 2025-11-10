@@ -167,7 +167,7 @@ public abstract class LivingEntityMixin extends Entity {
         LivingEntity self = (LivingEntity)(Object)this;
 
         //Disable on creative flying.
-        if (this.getType() == EntityType.PLAYER && isFlying((PlayerEntity) self)) { return; }
+        if (this.getType() == EntityType.PLAYER && MovementUtil.isFlying((PlayerEntity) self)) { return; }
 
         //Reverse multiplication done by the function that calls this one.
         this.sidewaysSpeed /= 0.98F;
@@ -541,9 +541,5 @@ public abstract class LivingEntityMixin extends Entity {
         this.velocityDirty = true;
 
         ci.cancel();
-    }
-
-    private static boolean isFlying(PlayerEntity player) {
-        return player != null && player.getAbilities().flying;
     }
 }
