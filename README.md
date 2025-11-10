@@ -1,6 +1,6 @@
 # Minehop Meteor Addon
 
-A [Meteor Client](https://github.com/MeteorDevelopment/meteor-client) addon that adds Source Engine-style bunnyhopping movement mechanics to Minecraft.
+A [Meteor Client](https://github.com/MeteorDevelopment/meteor-client) addon that adds Source Engine-style bunnyhopping movement mechanics to Minecraft. Based on the original [Minehop mod](https://github.com/Plaaasma/minehop-fabric-public).
 
 ## Supported versions: 
 - **Minecraft 1.21.10**
@@ -51,6 +51,10 @@ A [Meteor Client](https://github.com/MeteorDevelopment/meteor-client) addon that
 All settings can be adjusted in the Meteor GUI under Movement > Bunnyhopping:
 
 ### General Settings
+- **Crouch Height Adjustment**: Enable/disable enhanced crouch height adjustment (default: ON)
+  - When enabled: Player height changes from 1.8 blocks (standing) to **1.35 blocks** (crouching)
+  - When disabled: Vanilla behavior - 1.8 blocks (standing) to **1.5 blocks** (crouching)
+  - Enhanced mode provides lower crouch for better movement physics
 - **Fall Damage**: Enable/disable fall damage (Note: Use Meteor's NoFall module instead - this setting is disabled)
 - **Speed Cap**: Maximum speed multiplier (default: 0.6)
 
@@ -140,10 +144,11 @@ For issues, questions, or suggestions:
 - **Removed HUD features** (incompatible with Meteor Client's rendering system)
 - Added `MovementUtil.isFlying()` helper method
 - Cleaned up codebase and removed unused HUD-related code
-- **NEW: Dynamic crouch physics** - Proper height adjustment when crouching/sneaking
+- **NEW: Enhanced crouch physics** - Lower crouch height (1.35 blocks vs vanilla's 1.5 blocks) with toggleable setting
 - **NEW: Dynamic friction system** - Different friction when crouching (0.85) vs normal movement
 - **IMPROVED: Simplified ladder logic** - Cleaner, more reliable ladder climbing mechanics
 - **FIXED: Status effects** - Proper support for Jump Boost, Slow Falling, and Levitation
+- **FIXED: API compatibility** - Uses `isGliding()` instead of deprecated `isFallFlying()`
 - Reduced JAR size to 53K
 
 ### Version 1.1.0
