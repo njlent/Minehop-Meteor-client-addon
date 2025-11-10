@@ -17,6 +17,18 @@ public class Bunnyhopping extends Module {
     private final SettingGroup sgAdvanced = settings.createGroup("Advanced");
 
     // General settings
+    public final Setting<Boolean> crouchHeightAdjustment = sgGeneral.add(new BoolSetting.Builder()
+        .name("crouch-height-adjustment")
+        .description("Enable dynamic crouch height adjustment (1.8f standing -> 1.35f crouching).")
+        .defaultValue(true)
+        .onChanged(value -> {
+            if (ConfigWrapper.config != null) {
+                ConfigWrapper.config.crouch_height_adjustment = value;
+            }
+        })
+        .build()
+    );
+
     public final Setting<Boolean> fallDamage = sgGeneral.add(new BoolSetting.Builder()
         .name("fall-damage (use nofall from meteor)")
         .description("not working, use nofall from meteor.")
@@ -165,6 +177,7 @@ public class Bunnyhopping extends Module {
             // Otherwise, sync settings to config
             if (!initialized) {
                 LOG.info("First activation - loading config values into settings");
+                crouchHeightAdjustment.set(ConfigWrapper.config.crouch_height_adjustment);
                 fallDamage.set(ConfigWrapper.config.fall_damage);
                 svFriction.set(ConfigWrapper.config.movement.sv_friction);
                 svAccelerate.set(ConfigWrapper.config.movement.sv_accelerate);
@@ -185,6 +198,7 @@ public class Bunnyhopping extends Module {
 
     private void syncSettingsToConfig() {
         if (ConfigWrapper.config != null) {
+            ConfigWrapper.config.crouch_height_adjustment = crouchHeightAdjustment.get();
             ConfigWrapper.config.fall_damage = fallDamage.get();
             ConfigWrapper.config.movement.sv_friction = svFriction.get();
             ConfigWrapper.config.movement.sv_accelerate = svAccelerate.get();

@@ -9,6 +9,7 @@ public class MinehopConfig implements ConfigData {
     public boolean enabled = false;  // Default to disabled - controlled by Meteor module toggle
     public boolean fall_damage = false;
     public boolean nulls = true;
+    public boolean crouch_height_adjustment = false;  // Enable crouch height adjustment by default
     @ConfigEntry.Gui.CollapsibleObject
     public MovementSettings movement = new MovementSettings();
     @ConfigEntry.Gui.Excluded

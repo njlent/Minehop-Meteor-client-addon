@@ -196,14 +196,16 @@ public abstract class LivingEntityMixin extends Entity {
         float slipperiness = entityWorld.getBlockState(blockPos).getBlock().getSlipperiness();
         float friction = 1-(slipperiness*slipperiness);
 
-        boolean isCrouching = this.isSneaking();
-        if (isCrouching && !wasCrouching) {
-            // Check if there's room to "stand" before shifting up
-            if (entityWorld.isSpaceEmpty(this, this.getBoundingBox().expand(0.0, STAND_HEIGHT - CROUCH_HEIGHT, 0.0))) {
-                this.setPosition(this.getX(), this.getY() + (STAND_HEIGHT - CROUCH_HEIGHT), this.getZ());
+        if (config.crouch_height_adjustment) {
+            boolean isCrouching = this.isSneaking();
+            if (isCrouching && !wasCrouching) {
+                // Check if there's room to "stand" before shifting up
+                if (entityWorld.isSpaceEmpty(this, this.getBoundingBox().expand(0.0, STAND_HEIGHT - CROUCH_HEIGHT, 0.0))) {
+                    this.setPosition(this.getX(), this.getY() + (STAND_HEIGHT - CROUCH_HEIGHT), this.getZ());
+                }
             }
+            wasCrouching = isCrouching;
         }
-        wasCrouching = isCrouching;
 
         //
         //Apply Friction
@@ -424,7 +426,9 @@ public abstract class LivingEntityMixin extends Entity {
     @Override
     public EntityDimensions getDimensions(EntityPose pose) {
         EntityDimensions original = super.getDimensions(pose);
-        if (this.isSneaking()) {
+
+        // Only apply crouch height adjustment if enabled in config
+        if (ConfigWrapper.config != null && ConfigWrapper.config.crouch_height_adjustment && this.isSneaking()) {
             return EntityDimensions.changing(original.width(), CROUCH_HEIGHT);
         }
         return original;
