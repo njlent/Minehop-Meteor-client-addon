@@ -1,0 +1,45 @@
+{
+	"schemaVersion": 1,
+	"id": "minehop-meteor",
+	"version": "${version}",
+	"name": "Minehop Meteor Addon",
+	"description": "An all in one bhopping addon for Meteor Client!",
+	"authors": [
+		"Plaaasma",
+		"lolrow",
+		"Moriz",
+		"njlent"
+	],
+	"contact": {
+		"homepage": "https://github.com/njlent/minehop",
+		"sources": "https://github.com/njlent/minehop",
+		"issues": "https://github.com/njlent/minehop/issues"
+	},
+	"license": "MIT",
+	"icon": "assets/minehop/logo.png",
+	"environment": "*",
+	"entrypoints": {
+		"meteor": [
+			"net.nerdorg.minehop.MinehopAddon"
+		]
+	},
+	"mixins": [
+		"minehop.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.17.2",
+		"minecraft": "~1.21.10",
+		"java": ">=21",
+		"meteor-client": "*",
+		"fabric-api": "*",
+		"cloth-config2": ">=13.0.121"
+	},
+	"custom": {
+		"meteor-client:color": "225,25,25",
+		"modmenu": {
+			"parent": {
+				"id": "meteor-client"
+			}
+		}
+	}
+}

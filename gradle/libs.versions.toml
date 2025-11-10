@@ -1,0 +1,36 @@
+[versions]
+mod-version = "1.2.0"
+
+# Fabric (https://fabricmc.net/develop)
+minecraft = "1.21.10"
+yarn-mappings = "1.21.10+build.2"
+fabric-loader = "0.17.3"
+fabric-api = "0.138.0+1.21.10"
+
+# Loom (https://github.com/FabricMC/fabric-loom)
+loom = "1.12-SNAPSHOT"
+
+# Meteor (https://github.com/MeteorDevelopment/meteor-client/)
+meteor = "1.21.10-SNAPSHOT"
+
+# Dependencies
+cloth-config = "13.0.121"
+jda = "5.0.0-beta.21"
+
+[libraries]
+# Fabric base
+minecraft = { module = "com.mojang:minecraft", version.ref = "minecraft" }
+yarn = { module = "net.fabricmc:yarn", version.ref = "yarn-mappings" }
+fabric-loader = { module = "net.fabricmc:fabric-loader", version.ref = "fabric-loader" }
+fabric-api = { module = "net.fabricmc.fabric-api:fabric-api", version.ref = "fabric-api" }
+
+# Meteor client
+meteor-client = { module = "meteordevelopment:meteor-client", version.ref = "meteor" }
+
+# Additional dependencies
+cloth-config = { module = "me.shedaniel.cloth:cloth-config-fabric", version.ref = "cloth-config" }
+jda = { module = "net.dv8tion:JDA", version.ref = "jda" }
+
+[plugins]
+fabric-loom = { id = "fabric-loom", version.ref = "loom" }
+

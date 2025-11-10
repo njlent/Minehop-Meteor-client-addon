@@ -1,0 +1,126 @@
+package net.nerdorg.minehop.entity.custom;
+
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.attribute.DefaultAttributeContainer;
+import net.minecraft.entity.attribute.EntityAttributes;
+import net.minecraft.entity.mob.MobEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Box;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.World;
+import net.nerdorg.minehop.MinehopAddon;
+import net.nerdorg.minehop.data.DataManager;
+import net.nerdorg.minehop.networking.PacketHandler;
+import net.nerdorg.minehop.replays.ReplayEvents;
+
+import java.util.HashMap;
+import java.util.List;
+
+public class StartEntity extends Zone {
+    private BlockPos corner1;
+    private BlockPos corner2;
+
+    public StartEntity(EntityType<? extends MobEntity> entityType, World world) {
+        super(entityType, world);
+    }
+
+    @Override
+    public void writeCustomDataToNbt(NbtCompound nbt) {
+        super.writeCustomDataToNbt(nbt);
+        if (corner1 != null) {
+            nbt.putInt("Corner1X", corner1.getX());
+            nbt.putInt("Corner1Y", corner1.getY());
+            nbt.putInt("Corner1Z", corner1.getZ());
+        }
+        if (corner2 != null) {
+            nbt.putInt("Corner2X", corner2.getX());
+            nbt.putInt("Corner2Y", corner2.getY());
+            nbt.putInt("Corner2Z", corner2.getZ());
+        }
+    }
+
+    @Override
+    public void readCustomDataFromNbt(NbtCompound nbt) {
+        super.readCustomDataFromNbt(nbt);
+        int x1 = nbt.getInt("Corner1X").orElse(0);
+        int y1 = nbt.getInt("Corner1Y").orElse(0);
+        int z1 = nbt.getInt("Corner1Z").orElse(0);
+        corner1 = new BlockPos(x1, y1, z1);
+
+        int x2 = nbt.getInt("Corner2X").orElse(0);
+        int y2 = nbt.getInt("Corner2Y").orElse(0);
+        int z2 = nbt.getInt("Corner2Z").orElse(0);
+        corner2 = new BlockPos(x2, y2, z2);
+    }
+
+    public void setCorner1(BlockPos corner1) {
+        this.corner1 = corner1;
+    }
+
+    public void setCorner2(BlockPos corner2) {
+        this.corner2 = corner2;
+    }
+
+    public BlockPos getCorner1() {
+        return corner1;
+    }
+
+    public BlockPos getCorner2() {
+        return corner2;
+    }
+
+    @Override
+    public void tick() {
+        if (this.getWorld() instanceof ServerWorld serverWorld) {
+            if (serverWorld.getTime() % 2 == 0) {
+                if (this.corner1 != null && this.corner2 != null) {
+                    int avgX = (this.corner1.getX() + this.corner2.getX()) / 2;
+                    int avgY = (this.corner1.getY() + this.corner2.getY()) / 2;
+                    int avgZ = (this.corner1.getZ() + this.corner2.getZ()) / 2;
+
+                    this.setPosition(avgX + 0.5, avgY + 0.5, avgZ + 0.5);
+                }
+                for (ServerPlayerEntity worldPlayer : serverWorld.getPlayers()) {
+                    PacketHandler.updateZone(worldPlayer, this.getId(), this.corner1, this.corner2, this.getPairedMap(), 0);
+                }
+            }
+            if (this.corner1 != null && this.corner2 != null) {
+                DataManager.MapData pairedMap = DataManager.getMap(this.getPairedMap());
+                if (pairedMap != null) {
+                    Box colliderBox = new Box(new Vec3d(this.corner1.getX(), this.corner1.getY(), this.corner1.getZ()), new Vec3d(this.corner2.getX(), this.corner2.getY(), this.corner2.getZ()));
+                    List<ServerPlayerEntity> players = serverWorld.getPlayers();
+                    for (ServerPlayerEntity player : players) {
+                        if (!player.isCreative() && !player.isSpectator() && (MinehopAddon.groundedList.contains(player.getNameForScoreboard()))) {
+                            if (colliderBox.contains(player.getX(), player.getY(), player.getZ())) {
+                                System.out.println("Bruh");
+                                HashMap<String, Long> informationMap = new HashMap<>();
+                                informationMap.put(this.getPairedMap(), System.nanoTime());
+                                if (ReplayEvents.replayEntryMap.containsKey(player.getNameForScoreboard())) {
+                                    ReplayEvents.replayEntryMap.remove(player.getNameForScoreboard());
+                                }
+                                MinehopAddon.timerManager.put(player.getNameForScoreboard(), informationMap);
+                                MinehopAddon.playerMapLocation.put(player.getUuidAsString(), this);
+                            }
+                        }
+                        else {
+                            if (player.isCreative() || player.isSpectator()) {
+                                if (MinehopAddon.timerManager.containsKey(player.getNameForScoreboard())) {
+                                    MinehopAddon.timerManager.remove(player.getNameForScoreboard());
+                                }
+                            }
+                        }
+                    }
+                }
+                else {
+                    this.kill((ServerWorld) this.getWorld());
+                }
+            }
+        }
+        super.tick();
+    }
+}
