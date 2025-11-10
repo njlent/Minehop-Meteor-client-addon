@@ -2,6 +2,9 @@
 
 A [Meteor Client](https://github.com/MeteorDevelopment/meteor-client) addon that adds Source Engine-style bunnyhopping movement mechanics to Minecraft.
 
+## Supported versions: 
+- **Minecraft 1.21.10**
+
 ## Features
 
 - **Source Engine Movement Physics**: Implements CS:S/CS:GO style bunnyhopping with air strafing
@@ -48,7 +51,7 @@ A [Meteor Client](https://github.com/MeteorDevelopment/meteor-client) addon that
 All settings can be adjusted in the Meteor GUI under Movement > Bunnyhopping:
 
 ### General Settings
-- **Fall Damage**: Enable/disable fall damage (Note: Use Meteor's NoFall module instead - this setting is not working)
+- **Fall Damage**: Enable/disable fall damage (Note: Use Meteor's NoFall module instead - this setting is disabled)
 - **Speed Cap**: Maximum speed multiplier (default: 0.6)
 
 ### Movement Settings
