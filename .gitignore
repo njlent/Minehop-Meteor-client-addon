@@ -4,6 +4,7 @@ minehop-lite-1.21.4_update/
 # Gradle
 .gradle/
 build/
+builds/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/

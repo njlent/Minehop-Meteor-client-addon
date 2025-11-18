@@ -3,7 +3,7 @@ plugins {
 }
 
 // Set build directory to local filesystem to avoid network drive issues
-layout.buildDirectory = file(System.getProperty("user.home") + "/.gradle-builds/minehop-meteor")
+layout.buildDirectory = file("builds")
 
 base {
     archivesName = properties["archives_base_name"] as String
