@@ -76,7 +76,7 @@ public class MinehopAddon extends MeteorAddon {
 
     // Override config fields
     public static boolean receivedConfig = false;
-    public static boolean o_hns = false;
+    public static boolean o_hns = true;
     public static double o_sv_friction = 4.0;
     public static double o_sv_accelerate = 10.0;
     public static double o_sv_airaccelerate = 10.0;
@@ -85,7 +85,6 @@ public class MinehopAddon extends MeteorAddon {
     public static double o_sv_gravity = 0.08;
     public static double o_speed_coefficient = 1.0;
     public static boolean o_enabled = true;
-    public static boolean o_fall_damage = false;
     public static double o_speed_cap = 0.6;
 
     @Override
@@ -238,4 +237,3 @@ public class MinehopAddon extends MeteorAddon {
         return new GithubRepo("njlent", "minehop");
     }
 }
-

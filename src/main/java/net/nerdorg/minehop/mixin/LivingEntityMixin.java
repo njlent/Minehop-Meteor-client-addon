@@ -7,16 +7,13 @@ import net.minecraft.block.Blocks;
 import net.minecraft.block.HorizontalFacingBlock;
 import net.minecraft.block.StairsBlock;
 import net.minecraft.entity.*;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.damage.DamageTypes;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.registry.tag.BlockTags;
-import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
@@ -30,10 +27,8 @@ import net.nerdorg.minehop.config.ConfigWrapper;
 // import net.nerdorg.minehop.util.Logger; // DISABLED - not needed for Meteor addon
 import net.nerdorg.minehop.util.MovementUtil; // REQUIRED for movement calculations
 // import net.nerdorg.minehop.util.ZoneUtil; // DISABLED - not needed for Meteor addon
-import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -76,15 +71,8 @@ public abstract class LivingEntityMixin extends Entity {
 
     // @Shadow @Final public static int field_30063;  // TODO: Fix field names for 1.21.10
 
-    // Helper methods for status effects (replacing removed @Shadow methods)
-    // TODO: Fix status effect API for 1.21.10
-    protected boolean hasStatusEffect(StatusEffect effect) {
-        return false; // Placeholder - status effect checking needs API update
-    }
-
-    protected StatusEffectInstance getStatusEffect(StatusEffect effect) {
-        return null; // Placeholder - status effect checking needs API update
-    }
+    @Shadow public abstract boolean hasStatusEffect(RegistryEntry<StatusEffect> effect);
+    @Shadow public abstract StatusEffectInstance getStatusEffect(RegistryEntry<StatusEffect> effect);
 
     public float prevHeadYaw;
     public int stuckArrowTimer;
@@ -94,8 +82,6 @@ public abstract class LivingEntityMixin extends Entity {
     private boolean wasCrouching = false;
     private static final float STAND_HEIGHT = 1.8f;
     private static final float CROUCH_HEIGHT = 1.35f;
-    private double baseFriction;
-    private double activeFriction;
 
     public LivingEntityMixin(EntityType<?> type, World world) {
         super(type, world);
@@ -108,19 +94,9 @@ public abstract class LivingEntityMixin extends Entity {
 
     @Inject(method = "isPushable", at = @At("HEAD"), cancellable = true)
     public void isPushable(CallbackInfoReturnable<Boolean> cir) {
-        if (!MinehopAddon.o_hns) {
-            cir.setReturnValue(false);
-        }
-    }
-
-    @Inject(method = "damage", at = @At("HEAD"), cancellable = true)
-    public void onDamage(ServerWorld world, DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
         MinehopConfig config = ConfigWrapper.config;
-        // Simplified: Just disable fall damage if configured
-        if (source.isOf(DamageTypes.FALL)) {
-            if (!config.fall_damage) {
-                cir.cancel();
-            }
+        if (config != null && config.enabled && !config.entity_collisions && this.getType() == EntityType.PLAYER) {
+            cir.setReturnValue(false);
         }
     }
 
@@ -132,7 +108,6 @@ public abstract class LivingEntityMixin extends Entity {
     @Inject(method = "travel", at = @At("HEAD"), cancellable = true)
     public void travel(Vec3d movementInput, CallbackInfo ci) {
         MinehopConfig config;
-        double speedCap = 1000000;
         if (MinehopAddon.override_config && MinehopAddon.receivedConfig) {
             config = new MinehopConfig();
             config.movement.sv_friction = MinehopAddon.o_sv_friction;
@@ -142,9 +117,9 @@ public abstract class LivingEntityMixin extends Entity {
             config.movement.speed_mul = MinehopAddon.o_speed_mul;
             config.movement.sv_gravity = MinehopAddon.o_sv_gravity;
             config.movement.speed_coefficient = MinehopAddon.o_speed_coefficient;
+            config.movement.speed_cap = MinehopAddon.o_speed_cap;
             config.enabled = MinehopAddon.o_enabled;
-            config.fall_damage = MinehopAddon.o_fall_damage;
-            speedCap = MinehopAddon.o_speed_cap;
+            config.entity_collisions = MinehopAddon.o_hns;
         }
         else {
             config = ConfigWrapper.config;
@@ -152,6 +127,7 @@ public abstract class LivingEntityMixin extends Entity {
 
         // Null check - if config is not loaded yet, return early
         if (config == null) { return; }
+        double speedCap = config.movement.speed_cap;
 
         //Disable if it's disabled lol
         if (!config.enabled) { return; }
@@ -170,16 +146,8 @@ public abstract class LivingEntityMixin extends Entity {
         //Disable on creative flying.
         if (this.getType() == EntityType.PLAYER && MovementUtil.isFlying((PlayerEntity) self)) { return; }
 
-        if (baseFriction == 0) {
-            baseFriction = ConfigWrapper.config.movement.sv_friction; // Save wtv friction player put in config
-            activeFriction = baseFriction; // Start with normal friction ( change l8r)
-        }
-
-        if (this.isSneaking()) {
-            activeFriction = 0.85; // seems correct
-        } else {
-            activeFriction = baseFriction;
-        }
+        double baseFriction = config.movement.sv_friction;
+        double activeFriction = this.isSneaking() ? 0.85 : baseFriction;
 
         //Reverse multiplication done by the function that calls this one.
         this.sidewaysSpeed /= 0.98F;
@@ -342,12 +310,12 @@ public abstract class LivingEntityMixin extends Entity {
         //
         double yVel = preVel.y;
         double gravity = config.movement.sv_gravity;
-        if (preVel.y <= 0.0D && this.hasStatusEffect(StatusEffects.SLOW_FALLING.value())) {
+        if (preVel.y <= 0.0D && this.hasStatusEffect(StatusEffects.SLOW_FALLING)) {
             gravity = 0.01D;
             this.fallDistance = 0.0F;
         }
-        if (this.hasStatusEffect(StatusEffects.LEVITATION.value())) {
-            var levitation = this.getStatusEffect(StatusEffects.LEVITATION.value());
+        if (this.hasStatusEffect(StatusEffects.LEVITATION)) {
+            var levitation = this.getStatusEffect(StatusEffects.LEVITATION);
             if (levitation != null) {
                 yVel += (0.05D * (levitation.getAmplifier() + 1) - preVel.y) * 0.2D;
             }
@@ -447,8 +415,9 @@ public abstract class LivingEntityMixin extends Entity {
             config.movement.speed_mul = MinehopAddon.o_speed_mul;
             config.movement.sv_gravity = MinehopAddon.o_sv_gravity;
             config.movement.speed_coefficient = MinehopAddon.o_speed_coefficient;
+            config.movement.speed_cap = MinehopAddon.o_speed_cap;
             config.enabled = MinehopAddon.o_enabled;
-            config.fall_damage = MinehopAddon.o_fall_damage;
+            config.entity_collisions = MinehopAddon.o_hns;
         }
         else {
             config = ConfigWrapper.config;
@@ -462,12 +431,6 @@ public abstract class LivingEntityMixin extends Entity {
 
         Vec3d vecFin = this.getVelocity();
         double yVel = this.getJumpVelocity();
-        if (this.hasStatusEffect(StatusEffects.JUMP_BOOST.value())) {
-            var jumpBoost = this.getStatusEffect(StatusEffects.JUMP_BOOST.value());
-            if (jumpBoost != null) {
-                yVel += 0.1F * (jumpBoost.getAmplifier() + 1);
-            }
-        }
 
         this.setVelocity(vecFin.x, yVel, vecFin.z);
         this.velocityDirty = true;

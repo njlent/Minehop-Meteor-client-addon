@@ -7,6 +7,7 @@ import me.shedaniel.autoconfig.annotation.ConfigEntry;
 @Config(name = "minehop")
 public class MinehopConfig implements ConfigData {
     public boolean enabled = false;  // Default to disabled - controlled by Meteor module toggle
+    public boolean entity_collisions = true;
     public boolean fall_damage = false;
     public boolean nulls = true;
     public boolean crouch_height_adjustment = false;  // Enable crouch height adjustment by default
@@ -31,5 +32,6 @@ public class MinehopConfig implements ConfigData {
         public double speed_mul = 2.2;
         public double sv_gravity = 0.066;
         public double speed_coefficient = 1;
+        public double speed_cap = 0.6;
     }
 }

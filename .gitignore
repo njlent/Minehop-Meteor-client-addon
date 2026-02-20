@@ -32,10 +32,12 @@ bin/
 *.log
 errorlogs/
 
+# Local release artifacts
+release/*.jar
+
 # Minecraft run directory
 run/
 
 # Temporary files
 meteor-addon-template/
 minehop-fabric/
-

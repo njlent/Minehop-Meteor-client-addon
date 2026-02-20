@@ -29,14 +29,15 @@ public class Bunnyhopping extends Module {
         .build()
     );
 
-    public final Setting<Boolean> fallDamage = sgGeneral.add(new BoolSetting.Builder()
-        .name("fall-damage (use nofall from meteor)")
-        .description("not working, use nofall from meteor.")
-        .defaultValue(false)
+    public final Setting<Boolean> entityCollisions = sgGeneral.add(new BoolSetting.Builder()
+        .name("entity-collisions")
+        .description("Allow player-to-player collisions while bunnyhopping is enabled.")
+        .defaultValue(true)
         .onChanged(value -> {
             if (ConfigWrapper.config != null) {
-                ConfigWrapper.config.fall_damage = value;
+                ConfigWrapper.config.entity_collisions = value;
             }
+            MinehopAddon.o_hns = value;
         })
         .build()
     );
@@ -48,7 +49,12 @@ public class Bunnyhopping extends Module {
         .min(0.1)
         .max(10.0)
         .sliderMax(2.0)
-        .onChanged(value -> MinehopAddon.o_speed_cap = value)
+        .onChanged(value -> {
+            MinehopAddon.o_speed_cap = value;
+            if (ConfigWrapper.config != null) {
+                ConfigWrapper.config.movement.speed_cap = value;
+            }
+        })
         .build()
     );
 
@@ -178,7 +184,8 @@ public class Bunnyhopping extends Module {
             if (!initialized) {
                 LOG.info("First activation - loading config values into settings");
                 crouchHeightAdjustment.set(ConfigWrapper.config.crouch_height_adjustment);
-                fallDamage.set(ConfigWrapper.config.fall_damage);
+                entityCollisions.set(ConfigWrapper.config.entity_collisions);
+                speedCap.set(ConfigWrapper.config.movement.speed_cap);
                 svFriction.set(ConfigWrapper.config.movement.sv_friction);
                 svAccelerate.set(ConfigWrapper.config.movement.sv_accelerate);
                 svAirAccelerate.set(ConfigWrapper.config.movement.sv_airaccelerate);
@@ -199,7 +206,7 @@ public class Bunnyhopping extends Module {
     private void syncSettingsToConfig() {
         if (ConfigWrapper.config != null) {
             ConfigWrapper.config.crouch_height_adjustment = crouchHeightAdjustment.get();
-            ConfigWrapper.config.fall_damage = fallDamage.get();
+            ConfigWrapper.config.entity_collisions = entityCollisions.get();
             ConfigWrapper.config.movement.sv_friction = svFriction.get();
             ConfigWrapper.config.movement.sv_accelerate = svAccelerate.get();
             ConfigWrapper.config.movement.sv_airaccelerate = svAirAccelerate.get();
@@ -207,6 +214,7 @@ public class Bunnyhopping extends Module {
             ConfigWrapper.config.movement.sv_gravity = svGravity.get();
             ConfigWrapper.config.movement.speed_mul = speedMultiplier.get();
             ConfigWrapper.config.movement.speed_coefficient = speedCoefficient.get();
+            ConfigWrapper.config.movement.speed_cap = speedCap.get();
         }
     }
 
@@ -221,4 +229,3 @@ public class Bunnyhopping extends Module {
         }
     }
 }
-

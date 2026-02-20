@@ -80,6 +80,31 @@ tasks {
     }
 }
 
+val publishEasyJar by tasks.registering {
+    group = "build"
+    description = "Copies the remapped jar into ./release for easy access."
+    dependsOn("remapJar")
+    doLast {
+        val remapJarTask = tasks.named<org.gradle.jvm.tasks.Jar>("remapJar").get()
+        val jarFile = remapJarTask.archiveFile.get().asFile
+        val releaseDir = layout.projectDirectory.dir("release").asFile
+        releaseDir.mkdirs()
+
+        val versionedTarget = releaseDir.resolve(jarFile.name)
+        jarFile.copyTo(versionedTarget, overwrite = true)
+
+        val latestTarget = releaseDir.resolve("${project.base.archivesName.get()}-latest.jar")
+        jarFile.copyTo(latestTarget, overwrite = true)
+
+        logger.lifecycle("Copied versioned jar to: ${versionedTarget.absolutePath}")
+        logger.lifecycle("Copied latest jar to: ${latestTarget.absolutePath}")
+    }
+}
+
+tasks.named("build") {
+    finalizedBy(publishEasyJar)
+}
+
 // Exclude disabled source files from compilation
 sourceSets {
     main {
@@ -137,4 +162,3 @@ sourceSets {
         }
     }
 }
-

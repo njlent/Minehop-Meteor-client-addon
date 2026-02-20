@@ -22,7 +22,7 @@ A [Meteor Client](https://github.com/MeteorDevelopment/meteor-client) addon that
 
 ### Steps
 1. Download the latest release from the [Releases](https://github.com/njlent/minehop-Meteor-client-addon/releases) page
-2. Place `minehop-meteor-1.2.0.jar` in your `.minecraft/mods` folder
+2. Place `minehop-meteor-1.2.1.jar` in your `.minecraft/mods` folder
 3. Launch Minecraft with the Fabric profile
 4. Open Meteor GUI (default: Right Shift)
 5. Navigate to **Movement** category
@@ -55,7 +55,7 @@ All settings can be adjusted in the Meteor GUI under Movement > Bunnyhopping:
   - When enabled: Player height changes from 1.8 blocks (standing) to **1.35 blocks** (crouching)
   - When disabled: Vanilla behavior - 1.8 blocks (standing) to **1.5 blocks** (crouching)
   - Enhanced mode provides lower crouch for better movement physics
-- **Fall Damage**: Enable/disable fall damage (Note: Use Meteor's NoFall module instead - this setting is disabled)
+- **Entity Collisions**: Enable/disable player-to-player collisions while bunnyhopping is active (default: ON)
 - **Speed Cap**: Maximum speed multiplier (default: 0.6)
 
 ### Movement Settings
@@ -91,7 +91,7 @@ cd minehop-Meteor-client-addon
 # Build the project
 ./gradlew build
 
-# The compiled JAR will be in build/libs/
+# The compiled JAR will be in release/
 ```
 
 ## Technical Details
@@ -113,7 +113,6 @@ This addon modifies Minecraft's movement physics by injecting into the `LivingEn
 
 ## Known Issues
 
-- **Fall Damage Toggle**: The fall damage setting in the module doesn't work. Use Meteor's built-in NoFall module instead.
 - **Boost Blocks**: Disabled in this version due to registry issues
 - **HUD Features**: Removed in v1.2.0 due to incompatibility with Meteor Client's rendering system. Speed/SSJ/Efficiency displays are not available.
 
@@ -135,7 +134,15 @@ For issues, questions, or suggestions:
 
 ## Changelog
 
-### Version 1.2.0 (Current)
+### Version 1.2.1 (Current)
+- **FIXED: Jump Boost height** - Removed duplicate jump boost application in jump mixin
+- **FIXED: Live speed cap** - Speed cap now uses active config value in movement logic
+- **FIXED: Live friction updates** - Friction now reflects current settings without stale caching
+- **IMPROVED: Entity collision control** - Added module setting for collisions and enabled by default
+- **CLEANUP: Fall damage feature removed from module path** - Use Meteor's native NoFall
+- **BUILD: Predictable release output** - `./gradlew build` now copies jars to `release/` with a stable `minehop-meteor-latest.jar`
+
+### Version 1.2.0
 - Moved Bunnyhopping module to Movement category
 - Removed custom Minehop category
 - Fixed default movement values to match original mod
@@ -160,4 +167,3 @@ For issues, questions, or suggestions:
 ---
 
 **Enjoy bunnyhopping in Minecraft!** 🚀
-
