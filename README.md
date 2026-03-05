@@ -3,7 +3,7 @@
 A [Meteor Client](https://github.com/MeteorDevelopment/meteor-client) addon that adds Source Engine-style bunnyhopping movement mechanics to Minecraft. Based on the original [Minehop mod](https://github.com/Plaaasma/minehop-fabric-public).
 
 ## Supported versions: 
-- **Minecraft 1.21.10**
+- **Minecraft 1.21.11**
 
 ## Features
 
@@ -15,14 +15,14 @@ A [Meteor Client](https://github.com/MeteorDevelopment/meteor-client) addon that
 ## Installation
 
 ### Prerequisites
-- Minecraft 1.21.10
-- [Fabric Loader](https://fabricmc.net/use/) 0.17.3+
-- [Fabric API](https://modrinth.com/mod/fabric-api) 0.138.0+
-- [Meteor Client](https://meteorclient.com/) 1.21.10-SNAPSHOT
+- Minecraft 1.21.11
+- [Fabric Loader](https://fabricmc.net/use/) 0.18.4+
+- [Fabric API](https://modrinth.com/mod/fabric-api) 0.141.3+
+- [Meteor Client](https://meteorclient.com/) 1.21.11-SNAPSHOT (build 65)
 
 ### Steps
 1. Download the latest release from the [Releases](https://github.com/njlent/minehop-Meteor-client-addon/releases) page
-2. Place `minehop-meteor-1.2.1.jar` in your `.minecraft/mods` folder
+2. Place `minehop-meteor-1.2.2.jar` in your `.minecraft/mods` folder
 3. Launch Minecraft with the Fabric profile
 4. Open Meteor GUI (default: Right Shift)
 5. Navigate to **Movement** category
@@ -106,9 +106,9 @@ This addon modifies Minecraft's movement physics by injecting into the `LivingEn
 
 ## Compatibility
 
-- **Minecraft Version**: 1.21.10
-- **Fabric Loader**: 0.17.3+
-- **Meteor Client**: 1.21.10-SNAPSHOT
+- **Minecraft Version**: 1.21.11
+- **Fabric Loader**: 0.18.4+
+- **Meteor Client**: 1.21.11-SNAPSHOT (build 65)
 - **Multiplayer**: Works on both singleplayer and multiplayer (server-side movement validation may vary)
 
 ## Known Issues
@@ -134,7 +134,12 @@ For issues, questions, or suggestions:
 
 ## Changelog
 
-### Version 1.2.1 (Current)
+### Version 1.2.2 (Current)
+- **BUILD: Minecraft target bump** - Updated to Minecraft 1.21.11 / Yarn 1.21.11+build.4
+- **BUILD: Meteor target bump** - Updated dependency to Meteor Client 1.21.11-SNAPSHOT (latest build 65)
+- **BUILD: Fabric updates** - Updated Fabric Loader to 0.18.4 and Fabric API to 0.141.3+1.21.11
+
+### Version 1.2.1
 - **FIXED: Jump Boost height** - Removed duplicate jump boost application in jump mixin
 - **FIXED: Live speed cap** - Speed cap now uses active config value in movement logic
 - **FIXED: Live friction updates** - Friction now reflects current settings without stale caching
