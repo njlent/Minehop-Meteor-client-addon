@@ -1,4 +1,12 @@
-# Minehop Meteor Addon
+<div align="center">
+ <h1> <img src="img/icon.png" width="200px"><br/>Minehop Addon</h1>
+
+ <img src="https://img.shields.io/badge/Meteor Client Addon-6f1ab1?logo=meteor&logoColor=white"/> 
+ <br>
+ <img src="https://img.shields.io/badge/minecraft_version-1.21.11-green"/> 
+ <img src="https://img.shields.io/badge/minecraft_version-1.21.10-green"/> 
+</div>
+<br/>
 
 A [Meteor Client](https://github.com/MeteorDevelopment/meteor-client) addon that adds Source Engine-style bunnyhopping movement mechanics to Minecraft. Based on the original [Minehop mod](https://github.com/Plaaasma/minehop-fabric-public).
 
@@ -76,6 +84,12 @@ All settings can be adjusted in the Meteor GUI under Movement > Bunnyhopping:
   - Scales all movement speeds
 - **Speed Coefficient**: Speed calculation coefficient (default: 1.0)
   - Fine-tune speed calculations
+
+
+<br>
+<br>
+<br>
+<br>
 
 ## Building from Source
 
