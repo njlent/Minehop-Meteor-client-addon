@@ -3,16 +3,17 @@
 
  <img src="https://img.shields.io/badge/Meteor Client Addon-6f1ab1?logo=meteor&logoColor=white"/> 
  <br>
- <img src="https://img.shields.io/badge/minecraft_version-1.21.11-green"/> 
- <img src="https://img.shields.io/badge/minecraft_version-1.21.10-green"/> 
+ <img src="https://img.shields.io/badge/minecraft-1.21.11-green"/> 
+ <img src="https://img.shields.io/badge/minecraft-1.21.10-darkgreen"/> 
 </div>
 <br/>
 
-A [Meteor Client](https://github.com/MeteorDevelopment/meteor-client) addon that adds Source Engine-style bunnyhopping movement mechanics to Minecraft. Based on the original [Minehop mod](https://github.com/Plaaasma/minehop-fabric-public).
+A [Meteor Client](https://github.com/MeteorDevelopment/meteor-client) addon that adds Source Engine-style bunnyhopping movement mechanics to Minecraft. <br>
+Based on the original [Minehop mod](https://github.com/Plaaasma/minehop-fabric-public).
 
 ## Supported versions: 
-- **Minecraft 1.21.11** (latest)
-- **Minecraft 1.21.10** (up to v1.2.2)
+- **Minecraft 1.21.11** ([latest](https://github.com/njlent/minehop-Meteor-client-addon/releases))
+- **Minecraft 1.21.10** ([up to v1.2.1](https://github.com/njlent/minehop-Meteor-client-addon/releases/tag/v1.2.1))
 
 ## Features
 
