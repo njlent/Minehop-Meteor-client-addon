@@ -37,9 +37,6 @@ dependencies {
     modImplementation(libs.meteor.client)
 
     // Additional dependencies
-    modApi(libs.cloth.config) {
-        exclude(group = "net.fabricmc.fabric-api")
-    }
     implementation(libs.jda)
 }
 

@@ -1,8 +1,6 @@
 package net.nerdorg.minehop;
 
 import com.mojang.logging.LogUtils;
-import me.shedaniel.autoconfig.AutoConfig;
-import me.shedaniel.autoconfig.serializer.JanksonConfigSerializer;
 import meteordevelopment.meteorclient.addons.GithubRepo;
 import meteordevelopment.meteorclient.addons.MeteorAddon;
 import meteordevelopment.meteorclient.systems.hud.HudGroup;
@@ -12,10 +10,8 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ServerInfo;
 import net.minecraft.client.option.ServerList;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.nerdorg.minehop.config.ConfigWrapper;
-import net.nerdorg.minehop.config.MinehopConfig;
 // import net.nerdorg.minehop.entity.custom.Zone; // Disabled - entities not used in Meteor addon
 import net.nerdorg.minehop.modules.Bunnyhopping;
 import org.slf4j.Logger;
@@ -99,8 +95,7 @@ public class MinehopAddon extends MeteorAddon {
         // FabricDefaultAttributeRegistry.register(ModEntities.RESET_ENTITY, ResetEntity.setAttributes());
         // FabricDefaultAttributeRegistry.register(ModEntities.ZONE, Zone.setAttributes());
 
-        // Register and load config
-        AutoConfig.register(MinehopConfig.class, JanksonConfigSerializer::new);
+        // Initialize in-memory config
         ConfigWrapper.loadConfig();
         LOG.info("Config loaded: " + (ConfigWrapper.config != null ? "SUCCESS" : "FAILED"));
 

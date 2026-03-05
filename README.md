@@ -101,7 +101,7 @@ This addon modifies Minecraft's movement physics by injecting into the `LivingEn
 ### Key Components
 - **Bunnyhopping Module**: Meteor module providing GUI controls
 - **LivingEntityMixin**: Core movement physics implementation
-- **MinehopConfig**: Configuration system using AutoConfig and Cloth Config
+- **MinehopConfig**: Lightweight internal configuration model used by movement logic
 - **ConfigWrapper**: Manages config loading and synchronization
 
 ## Compatibility

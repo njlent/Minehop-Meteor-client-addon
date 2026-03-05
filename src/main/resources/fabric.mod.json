@@ -31,8 +31,7 @@
 		"minecraft": "~1.21.11",
 		"java": ">=21",
 		"meteor-client": "*",
-		"fabric-api": "*",
-		"cloth-config2": ">=13.0.121"
+		"fabric-api": "*"
 	},
 	"custom": {
 		"meteor-client:color": "225,25,25",
