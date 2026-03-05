@@ -113,6 +113,17 @@ This addon modifies Minecraft's movement physics by injecting into the `LivingEn
 - **MinehopConfig**: Lightweight internal configuration model used by movement logic
 - **ConfigWrapper**: Manages config loading and synchronization
 
+## License
+
+This repository is based on [minehop-fabric-public](https://github.com/Plaaasma/minehop-fabric-public).
+
+- Upstream license terms apply to upstream-derived code.
+- Upstream states only the `LivingEntityMixin.travel` code is openly reusable.
+- Other upstream components are marked "All Rights Reserved" by upstream.
+- Original contributions in this fork are MIT-licensed unless marked otherwise.
+
+See [LICENSE](LICENSE) for full terms.
+
 ## Known Issues
 
 - **Boost Blocks**: Disabled in this version due to registry issues

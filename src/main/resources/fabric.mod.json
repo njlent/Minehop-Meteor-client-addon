@@ -15,7 +15,7 @@
 		"sources": "https://github.com/njlent/minehop",
 		"issues": "https://github.com/njlent/minehop/issues"
 	},
-	"license": "MIT",
+	"license": "SEE LICENSE",
 	"icon": "assets/minehop/logo.png",
 	"environment": "*",
 	"entrypoints": {
