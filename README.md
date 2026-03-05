@@ -3,7 +3,8 @@
 A [Meteor Client](https://github.com/MeteorDevelopment/meteor-client) addon that adds Source Engine-style bunnyhopping movement mechanics to Minecraft. Based on the original [Minehop mod](https://github.com/Plaaasma/minehop-fabric-public).
 
 ## Supported versions: 
-- **Minecraft 1.21.11**
+- **Minecraft 1.21.11** (latest)
+- **Minecraft 1.21.10** (up to v1.2.2)
 
 ## Features
 
