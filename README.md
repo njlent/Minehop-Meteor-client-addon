@@ -112,6 +112,7 @@ This addon modifies Minecraft's movement physics by injecting into the `LivingEn
 - **LivingEntityMixin**: Core movement physics implementation
 - **MinehopConfig**: Lightweight internal configuration model used by movement logic
 - **ConfigWrapper**: Manages config loading and synchronization
+- **ServerPlayNetworkHandlerMixin**: Relaxes local movement speed checks for the addon path
 
 ## License
 
@@ -128,6 +129,7 @@ See [LICENSE](LICENSE) for full terms.
 
 - **Boost Blocks**: Disabled in this version due to registry issues
 - **HUD Features**: Removed in v1.2.0 due to incompatibility with Meteor Client's rendering system. Speed/SSJ/Efficiency displays are not available.
+- **Legacy Fabric Mod Content**: Removed from the addon tree. This repo now ships only the active Meteor bunnyhop path.
 
 
 <br>

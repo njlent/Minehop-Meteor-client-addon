@@ -10,4 +10,3 @@ public interface EntityAccessor {
     @Accessor("world")
     World getWorldField();
 }
-

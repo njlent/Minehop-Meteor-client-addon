@@ -13,9 +13,6 @@ loom = "1.14-SNAPSHOT"
 # Meteor (https://github.com/MeteorDevelopment/meteor-client/)
 meteor = "1.21.11-SNAPSHOT"
 
-# Dependencies
-jda = "5.0.0-beta.21"
-
 [libraries]
 # Fabric base
 minecraft = { module = "com.mojang:minecraft", version.ref = "minecraft" }
@@ -25,9 +22,6 @@ fabric-api = { module = "net.fabricmc.fabric-api:fabric-api", version.ref = "fab
 
 # Meteor client
 meteor-client = { module = "meteordevelopment:meteor-client", version.ref = "meteor" }
-
-# Additional dependencies
-jda = { module = "net.dv8tion:JDA", version.ref = "jda" }
 
 [plugins]
 fabric-loom = { id = "fabric-loom", version.ref = "loom" }

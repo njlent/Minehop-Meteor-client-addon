@@ -35,9 +35,6 @@ dependencies {
 
     // Meteor
     modImplementation(libs.meteor.client)
-
-    // Additional dependencies
-    implementation(libs.jda)
 }
 
 tasks {
@@ -100,62 +97,4 @@ val publishEasyJar by tasks.registering {
 
 tasks.named("build") {
     finalizedBy(publishEasyJar)
-}
-
-// Exclude disabled source files from compilation
-sourceSets {
-    main {
-        java {
-            exclude(
-                // Old server-side mod initializer (replaced by MinehopAddon.java)
-                "**/Minehop.java",
-
-                // Disabled server-side features
-                "**/commands/**",
-                "**/data/**",
-                "**/replays/**",
-                "**/networking/**",
-                "**/discord/**",
-                "**/hns/**",
-                "**/motd/**",
-                "**/item/**",
-                "**/block/**",
-
-                // Disabled entity system (broken in 1.21)
-                "**/entity/**",
-
-                // Disabled rendering utilities (broken in 1.21)
-                "**/render/**",
-
-                // Disabled utilities except MovementUtil
-                "**/util/ZoneUtil.java",
-                "**/util/DiscordUtil.java",
-                "**/util/DataUtil.java",
-
-                // Disabled screen files (depend on DataManager)
-                "**/screen/**",
-
-                // Disabled client mixins that have 1.21 API issues or depend on disabled features
-                "**/mixin/client/GameRendererMixin.java",      // Depends on ModItems
-                "**/mixin/client/SoundSystemMixin.java",       // Depends on DataManager and ZoneUtil
-                "**/mixin/client/KeyBindingMixin.java",        // References old Minehop class
-                "**/mixin/client/PlayerEntityModelMixin.java", // 1.21 API changes
-                "**/mixin/client/PlayerEntityRendererMixin.java", // Likely has 1.21 API issues
-                "**/mixin/client/SpectatorHudMixin.java",      // May have issues
-                "**/mixin/client/MultiplayerScreenMixin.java", // Not needed for core functionality
-
-                // Keep enabled:
-                // - MinehopAddon.java (main addon class)
-                // - client/SqueedometerHud.java (HUD functionality - needs fixes)
-                // - client/SpeedCalculator.java (HUD helper)
-                // - mixin/client/InGameHudMixin.java (HUD rendering - needs fixes)
-                // - mixin/LivingEntityMixin.java (movement logic)
-                // - mixin/ServerPlayNetworkHandlerMixin.java (anti-cheat bypass)
-                // - mixin/EntityAccessor.java (accessor)
-                // - modules/Bunnyhopping.java (main module)
-                // - config/ (configuration)
-                // - util/MovementUtil.java
-            )
-        }
-    }
 }

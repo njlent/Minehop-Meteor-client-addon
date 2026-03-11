@@ -2,40 +2,25 @@
 
 package net.nerdorg.minehop.mixin;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.HorizontalFacingBlock;
-import net.minecraft.block.StairsBlock;
 import net.minecraft.entity.*;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
-import net.nerdorg.minehop.MinehopAddon;
-// import net.nerdorg.minehop.block.ModBlocks; // DISABLED - causes crashes
-// import net.nerdorg.minehop.block.entity.BoostBlockEntity; // DISABLED - causes crashes
-import net.nerdorg.minehop.config.MinehopConfig;
 import net.nerdorg.minehop.config.ConfigWrapper;
-// import net.nerdorg.minehop.data.DataManager; // DISABLED - not needed for Meteor addon
-// import net.nerdorg.minehop.hns.HNSManager; // DISABLED - not needed for Meteor addon
-// import net.nerdorg.minehop.util.Logger; // DISABLED - not needed for Meteor addon
+import net.nerdorg.minehop.config.MinehopConfig;
 import net.nerdorg.minehop.util.MovementUtil; // REQUIRED for movement calculations
-// import net.nerdorg.minehop.util.ZoneUtil; // DISABLED - not needed for Meteor addon
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityMixin extends Entity {
@@ -54,22 +39,11 @@ public abstract class LivingEntityMixin extends Entity {
 
     @Shadow public abstract void updateLimbs(boolean flutter);
 
-    // @Shadow public float prevHeadYaw;  // TODO: Fix field names for 1.21.10
-
     @Shadow public abstract float getHeadYaw();
-
-    // @Shadow public int stuckArrowTimer;  // TODO: Fix field names for 1.21.10
 
     @Shadow public abstract boolean isHoldingOntoLadder();
 
-    // @Shadow protected float field_6215;  // TODO: Fix field names for 1.21.10
-
     @Shadow protected abstract boolean shouldSwimInFluids();
-
-    // Note: getWorld(), getPos(), and getBlockPos() are inherited from Entity parent class
-    // No need to shadow or override them - they're available via inheritance
-
-    // @Shadow @Final public static int field_30063;  // TODO: Fix field names for 1.21.10
 
     @Shadow public abstract boolean hasStatusEffect(RegistryEntry<StatusEffect> effect);
     @Shadow public abstract StatusEffectInstance getStatusEffect(RegistryEntry<StatusEffect> effect);
@@ -87,14 +61,9 @@ public abstract class LivingEntityMixin extends Entity {
         super(type, world);
     }
 
-    // Helper method to get world - uses accessor to access Entity's world field
-    private World getEntityWorld(LivingEntity self) {
-        return ((EntityAccessor)self).getWorldField();
-    }
-
     @Inject(method = "isPushable", at = @At("HEAD"), cancellable = true)
     public void isPushable(CallbackInfoReturnable<Boolean> cir) {
-        MinehopConfig config = ConfigWrapper.config;
+        var config = ConfigWrapper.config;
         if (config != null && config.enabled && !config.entity_collisions && this.getType() == EntityType.PLAYER) {
             cir.setReturnValue(false);
         }
@@ -102,48 +71,20 @@ public abstract class LivingEntityMixin extends Entity {
 
     /**
      * @Author lolrow and Plaaasma
-     * @Reason Improved quick turning and added gauge/efficiency calculation. I don't think any of lolrows code is here anymore but he's cool so he can stay.
+     * @Reason Source-style movement override for the active Meteor bunnyhop path.
      */
 
     @Inject(method = "travel", at = @At("HEAD"), cancellable = true)
     public void travel(Vec3d movementInput, CallbackInfo ci) {
-        MinehopConfig config;
-        if (MinehopAddon.override_config && MinehopAddon.receivedConfig) {
-            config = new MinehopConfig();
-            config.movement.sv_friction = MinehopAddon.o_sv_friction;
-            config.movement.sv_accelerate = MinehopAddon.o_sv_accelerate;
-            config.movement.sv_airaccelerate = MinehopAddon.o_sv_airaccelerate;
-            config.movement.sv_maxairspeed = MinehopAddon.o_sv_maxairspeed;
-            config.movement.speed_mul = MinehopAddon.o_speed_mul;
-            config.movement.sv_gravity = MinehopAddon.o_sv_gravity;
-            config.movement.speed_coefficient = MinehopAddon.o_speed_coefficient;
-            config.movement.speed_cap = MinehopAddon.o_speed_cap;
-            config.enabled = MinehopAddon.o_enabled;
-            config.entity_collisions = MinehopAddon.o_hns;
-        }
-        else {
-            config = ConfigWrapper.config;
-        }
-
-        // Null check - if config is not loaded yet, return early
+        var config = ConfigWrapper.config;
         if (config == null) { return; }
         double speedCap = config.movement.speed_cap;
-
-        //Disable if it's disabled lol
         if (!config.enabled) { return; }
-
-        //Enable for Players only
         if (this.getType() != EntityType.PLAYER) { return; }
-
         if (!this.canMoveVoluntarily() && !this.isLogicalSideForUpdatingMovement()) { return; }
-
-        //Cancel override if not in plain walking state.
         if (this.isTouchingWater() || this.isInLava() || this.isGliding()) { return; }
 
-        //Cast to LivingEntity to access Entity methods
         LivingEntity self = (LivingEntity)(Object)this;
-
-        //Disable on creative flying.
         if (this.getType() == EntityType.PLAYER && MovementUtil.isFlying((PlayerEntity) self)) { return; }
 
         double baseFriction = config.movement.sv_friction;
@@ -160,14 +101,13 @@ public abstract class LivingEntityMixin extends Entity {
 
         //Get Slipperiness and Movement speed.
         BlockPos blockPos = this.getVelocityAffectingPos();
-        World entityWorld = getEntityWorld(self);
+        World entityWorld = ((EntityAccessor) self).getWorldField();
         float slipperiness = entityWorld.getBlockState(blockPos).getBlock().getSlipperiness();
         float friction = 1-(slipperiness*slipperiness);
 
         if (config.crouch_height_adjustment) {
             boolean isCrouching = this.isSneaking();
             if (isCrouching && !wasCrouching) {
-                // Check if there's room to "stand" before shifting up
                 if (entityWorld.isSpaceEmpty(this, this.getBoundingBox().expand(0.0, STAND_HEIGHT - CROUCH_HEIGHT, 0.0))) {
                     this.setPosition(this.getX(), this.getY() + (STAND_HEIGHT - CROUCH_HEIGHT), this.getZ());
                 }
@@ -178,7 +118,7 @@ public abstract class LivingEntityMixin extends Entity {
         //
         //Apply Friction
         //
-        boolean fullGrounded = this.wasOnGround && this.isOnGround(); //Allows for no friction 1-frame upon landing.
+        boolean fullGrounded = this.wasOnGround && this.isOnGround();
         if (fullGrounded) {
             Vec3d velFin = this.getVelocity();
             Vec3d horFin = new Vec3d(velFin.x,0.0F,velFin.z);
@@ -214,23 +154,6 @@ public abstract class LivingEntityMixin extends Entity {
 
         double perfectAngle = findOptimalStrafeAngle(sI, fI, config, fullGrounded);
 
-        // AUTOSTRAFER FOR TESTING PURPOSES, PROBABLY GOING TO ADD IT AS A GAMEMODE CAUSE IT'S REALLY FUN
-//        this.setYaw((float) perfectAngle);
-
-        // Simplified: Remove efficiency calculation that requires getWorld()
-        if (this.isOnGround()) {
-            if (MinehopAddon.efficiencyListMap.containsKey(this.getNameForScoreboard())) {
-                List<Double> efficiencyList = MinehopAddon.efficiencyListMap.get(this.getNameForScoreboard());
-                if (efficiencyList != null && efficiencyList.size() > 0) {
-                    double averageEfficiency = efficiencyList.stream().mapToDouble(Double::doubleValue).average().orElse(Double.NaN);
-                    if (self instanceof PlayerEntity playerEntity) {
-                        MinehopAddon.efficiencyUpdateMap.put(playerEntity.getNameForScoreboard(), averageEfficiency);
-                    }
-                    MinehopAddon.efficiencyListMap.put(this.getNameForScoreboard(), new ArrayList<>());
-                }
-            }
-        }
-
         if (sI != 0.0F || fI != 0.0F) {
             Vec3d moveDir = MovementUtil.movementInputToVelocity(new Vec3d(sI, 0.0F, fI), 1.0F, this.getYaw());
             Vec3d accelVec = this.getVelocity();
@@ -265,30 +188,7 @@ public abstract class LivingEntityMixin extends Entity {
             double currentHorizontalSpeed = newHorizontalVelocity.horizontalLength();
 
             if (currentHorizontalSpeed > speedCap && !fullGrounded) {
-                // Scale down the horizontal velocity to the speedCap
                 newHorizontalVelocity = newHorizontalVelocity.multiply(speedCap / currentHorizontalSpeed);
-            }
-
-            if (!fullGrounded) {
-                double v = Math.sqrt((newVelocity.x * newVelocity.x) + (newVelocity.z * newVelocity.z));
-                double nogainv2 = (accelVec.x * accelVec.x) + (accelVec.z * accelVec.z);
-                double nogainv = Math.sqrt(nogainv2);
-                double maxgainv = Math.sqrt(nogainv2 + (maxVel * maxVel));
-
-                double normalYaw = this.getYaw();
-
-                double gaugeValue = sI < 0 || fI < 0 ? (normalYaw - perfectAngle) : (perfectAngle - normalYaw);
-                gaugeValue = normalizeAngle(gaugeValue) * 2;
-
-                List<Double> gaugeList = MinehopAddon.gaugeListMap.containsKey(this.getNameForScoreboard()) ? MinehopAddon.gaugeListMap.get(this.getNameForScoreboard()) : new ArrayList<>();
-                gaugeList.add(gaugeValue);
-                MinehopAddon.gaugeListMap.put(this.getNameForScoreboard(), gaugeList);
-
-                double strafeEfficiency = MathHelper.clamp((((v - nogainv) / (maxgainv - nogainv)) * 100), 0D, 100D);
-                MinehopAddon.efficiencyMap.put(this.getNameForScoreboard(), strafeEfficiency);
-                List<Double> efficiencyList = MinehopAddon.efficiencyListMap.containsKey(this.getNameForScoreboard()) ? MinehopAddon.efficiencyListMap.get(this.getNameForScoreboard()) : new ArrayList<>();
-                efficiencyList.add(strafeEfficiency);
-                MinehopAddon.efficiencyListMap.put(this.getNameForScoreboard(), efficiencyList);
             }
 
             this.setVelocity(new Vec3d(newHorizontalVelocity.getX(), newVelocity.getY(), newHorizontalVelocity.getZ()));
@@ -297,17 +197,11 @@ public abstract class LivingEntityMixin extends Entity {
         this.setVelocity(this.applyClimbingSpeed(this.getVelocity()));
         this.move(MovementType.SELF, this.getVelocity());
 
-        //u8
-        //Ladder Logic
-        //
         Vec3d preVel = this.getVelocity();
         if ((this.horizontalCollision || this.jumping) && this.isClimbing()) {
             preVel = new Vec3d(preVel.x * 0.7D, 0.2D, preVel.z * 0.7D);
         }
 
-        //
-        //Apply Gravity (If not in Water)
-        //
         double yVel = preVel.y;
         double gravity = config.movement.sv_gravity;
         if (preVel.y <= 0.0D && this.hasStatusEffect(StatusEffects.SLOW_FALLING)) {
@@ -326,24 +220,9 @@ public abstract class LivingEntityMixin extends Entity {
             yVel -= gravity;
         }
 
-        // DISABLED - Boost blocks cause crashes due to registry issues
-        // BlockState belowState = entityWorld.getBlockState(this.getBlockPos());
-        // if (belowState.isOf(ModBlocks.BOOSTER_BLOCK) && (entityWorld.getTime() > this.boostTime + 5 || entityWorld.getTime() < this.boostTime)) {
-        //     this.boostTime = entityWorld.getTime();
-        //     BoostBlockEntity boostBlockEntity = (BoostBlockEntity) entityWorld.getBlockEntity(this.getBlockPos());
-        //     if (boostBlockEntity != null) {
-        //         preVel = preVel.add(boostBlockEntity.getXPower(), 0, boostBlockEntity.getZPower());
-        //         yVel += boostBlockEntity.getYPower();
-        //     }
-        // }
         this.setVelocity(preVel.x,yVel,preVel.z);
 
-        //
-        //Update limbs.
-        //
         this.updateLimbs(self instanceof Flutterer);
-
-        //Override original method.
         ci.cancel();
     }
 
@@ -351,7 +230,7 @@ public abstract class LivingEntityMixin extends Entity {
         double highestVelocity = -Double.MAX_VALUE;
         double optimalAngle = 0;
         float currentYaw = this.getYaw();
-        for (double angle = currentYaw - 45; angle < currentYaw + 45; angle += 1) {  // Test angles 0 to 355 degrees, in 5 degree increments
+        for (double angle = currentYaw - 45; angle < currentYaw + 45; angle += 1) {
             Vec3d moveDir = MovementUtil.movementInputToVelocity(new Vec3d(sI, 0.0F, fI), 1.0F, (float) angle);
             Vec3d accelVec = this.getVelocity();
 
@@ -384,18 +263,10 @@ public abstract class LivingEntityMixin extends Entity {
         return optimalAngle;
     }
 
-    private static double normalizeAngle(double angle) {
-        angle = angle % 360;
-        if (angle > 180) angle -= 360;
-        else if (angle < -180) angle += 360;
-        return angle;
-    }
-
     @Override
     public EntityDimensions getDimensions(EntityPose pose) {
         EntityDimensions original = super.getDimensions(pose);
 
-        // Only apply crouch height adjustment if enabled in config
         if (ConfigWrapper.config != null && ConfigWrapper.config.crouch_height_adjustment && this.isSneaking()) {
             return EntityDimensions.changing(original.width(), CROUCH_HEIGHT);
         }
@@ -404,29 +275,8 @@ public abstract class LivingEntityMixin extends Entity {
 
     @Inject(method = "jump", at = @At("HEAD"), cancellable = true)
     void jump(CallbackInfo ci) {
-        MinehopConfig config;
-
-        if (MinehopAddon.override_config && MinehopAddon.receivedConfig) {
-            config = new MinehopConfig();
-            config.movement.sv_friction = MinehopAddon.o_sv_friction;
-            config.movement.sv_accelerate = MinehopAddon.o_sv_accelerate;
-            config.movement.sv_airaccelerate = MinehopAddon.o_sv_airaccelerate;
-            config.movement.sv_maxairspeed = MinehopAddon.o_sv_maxairspeed;
-            config.movement.speed_mul = MinehopAddon.o_speed_mul;
-            config.movement.sv_gravity = MinehopAddon.o_sv_gravity;
-            config.movement.speed_coefficient = MinehopAddon.o_speed_coefficient;
-            config.movement.speed_cap = MinehopAddon.o_speed_cap;
-            config.enabled = MinehopAddon.o_enabled;
-            config.entity_collisions = MinehopAddon.o_hns;
-        }
-        else {
-            config = ConfigWrapper.config;
-        }
-
-        // Null check - if config is not loaded yet, return early
+        var config = ConfigWrapper.config;
         if (config == null) { return; }
-
-        //Disable if it's disabled lol
         if (!config.enabled) { return; }
 
         Vec3d vecFin = this.getVelocity();

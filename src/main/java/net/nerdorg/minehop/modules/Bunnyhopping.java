@@ -3,7 +3,6 @@ package net.nerdorg.minehop.modules;
 import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.systems.modules.Categories;
-import net.nerdorg.minehop.MinehopAddon;
 import net.nerdorg.minehop.config.ConfigWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +36,6 @@ public class Bunnyhopping extends Module {
             if (ConfigWrapper.config != null) {
                 ConfigWrapper.config.entity_collisions = value;
             }
-            MinehopAddon.o_hns = value;
         })
         .build()
     );
@@ -50,7 +48,6 @@ public class Bunnyhopping extends Module {
         .max(10.0)
         .sliderMax(2.0)
         .onChanged(value -> {
-            MinehopAddon.o_speed_cap = value;
             if (ConfigWrapper.config != null) {
                 ConfigWrapper.config.movement.speed_cap = value;
             }
