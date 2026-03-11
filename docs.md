@@ -52,6 +52,10 @@ Current release task writes:
 - `release/minehop-meteor-{version}.jar`
 - `release/minehop-meteor-latest.jar`
 
+GitHub Actions dev builds publish to the `snapshot` prerelease tag.
+- workflow force-moves `snapshot` to the current commit before upload
+- release notes list commits since the latest non-prerelease GitHub release
+
 ## Verification
 
 Terminal gate:
