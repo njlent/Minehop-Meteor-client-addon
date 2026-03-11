@@ -54,6 +54,7 @@ Current release task writes:
 
 GitHub Actions dev builds publish to the `snapshot` prerelease tag.
 - workflow force-moves `snapshot` to the current commit before upload
+- uploaded CI jar names get a `_dev` suffix
 - release notes list commits since the latest non-prerelease GitHub release
 
 ## Verification

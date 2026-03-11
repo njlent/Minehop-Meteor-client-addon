@@ -28,6 +28,14 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew build
 
+      - name: Prepare dev artifact names
+        run: |
+          mkdir -p "${RUNNER_TEMP}/dev-artifacts"
+          for jar in ./builds/libs/*.jar; do
+            base_name="$(basename "${jar}" .jar)"
+            cp "${jar}" "${RUNNER_TEMP}/dev-artifacts/${base_name}_dev.jar"
+          done
+
       - name: Move snapshot tag
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -86,4 +94,4 @@ jobs:
           body_path: ${{ steps.notes.outputs.path }}
           prerelease: true
           files: |
-            ./builds/libs/*.jar
+            ${{ runner.temp }}/dev-artifacts/*.jar
