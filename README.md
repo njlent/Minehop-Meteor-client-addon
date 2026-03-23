@@ -79,58 +79,20 @@ All settings can be adjusted in the Meteor GUI under Movement > Bunnyhopping:
 - **Speed Coefficient**: Speed calculation coefficient (default: 1.0)
   - Fine-tune speed calculations
 
-
 <br>
 <br>
 <br>
-<br>
 
-## Building from Source
-
-### Prerequisites
-- JDK 21+
-- Git
-
-### Steps
-```bash
-# Clone the repository
-git clone https://github.com/njlent/minehop-Meteor-client-addon.git
-cd minehop-Meteor-client-addon
-
-# Build the project
-./gradlew build
-
-# The compiled JAR will be in release/
-```
-
-## Technical Details
-
-This addon modifies Minecraft's movement physics by injecting into the `LivingEntity.travel()` and `LivingEntity.jump()` methods using Fabric mixins. The implementation closely follows Source Engine's movement code, providing an authentic bunnyhopping experience.
-
-### Key Components
-- **Bunnyhopping Module**: Meteor module providing GUI controls
-- **LivingEntityMixin**: Core movement physics implementation
-- **MinehopConfig**: Lightweight internal configuration model used by movement logic
-- **ConfigWrapper**: Manages config loading and synchronization
-- **ServerPlayNetworkHandlerMixin**: Relaxes local movement speed checks for the addon path
-
-## License
-
-This repository is based on [minehop-fabric-public](https://github.com/Plaaasma/minehop-fabric-public).
-
-- Upstream license terms apply to upstream-derived code.
-- Upstream states only the `LivingEntityMixin.travel` code is openly reusable.
-- Other upstream components are marked "All Rights Reserved" by upstream.
-- Original contributions in this fork are MIT-licensed unless marked otherwise.
-
-See [LICENSE](LICENSE) for full terms.
-
-## Known Issues
-
-- **Boost Blocks**: Disabled in this version due to registry issues
-- **HUD Features**: Removed in v1.2.0 due to incompatibility with Meteor Client's rendering system. Speed/SSJ/Efficiency displays are not available.
-- **Legacy Fabric Mod Content**: Removed from the addon tree. This repo now ships only the active Meteor bunnyhop path.
-
-
-<br>
-**Enjoy bunnyhopping in Minecraft!** 🚀
+> [!IMPORTANT]
+> Check out my other Meteor addons:
+>
+> <table>
+>   <tr>
+>     <td valign="middle">
+>       <img src="https://raw.githubusercontent.com/njlent/Wurstmeteor-Meteor-client-addon/refs/heads/master/img/icon.png" width="50" alt="WurstMeteor Addon icon">
+>     </td>
+>     <td valign="middle">
+>       <a href="https://github.com/njlent/Wurstmeteor-Meteor-client-addon">WurstMeteor Addon - ports selected Wurst Client features</a>
+>     </td>
+>   </tr>
+> </table>
