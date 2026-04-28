@@ -2,21 +2,27 @@
 
 package net.nerdorg.minehop.mixin;
 
-import net.minecraft.entity.*;
-import net.minecraft.entity.effect.StatusEffect;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
+import net.minecraft.util.Mth;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityDimensions;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.MoverType;
+import net.minecraft.world.entity.Pose;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 import net.nerdorg.minehop.config.ConfigWrapper;
 import net.nerdorg.minehop.config.MinehopConfig;
 import net.nerdorg.minehop.util.MovementUtil; // REQUIRED for movement calculations
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.gen.Invoker;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -24,29 +30,27 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityMixin extends Entity {
-    @Shadow private float movementSpeed;
-    @Shadow public float sidewaysSpeed;
-    @Shadow public float forwardSpeed;
-    @Shadow private int jumpingCooldown;
+    @Shadow private float speed;
+    @Shadow public float xxa;
+    @Shadow public float zza;
+    @Shadow private int noJumpDelay;
     @Shadow protected boolean jumping;
 
-    @Shadow protected abstract Vec3d applyClimbingSpeed(Vec3d velocity);
-    @Shadow protected abstract float getJumpVelocity();
-    @Shadow public abstract boolean isClimbing();
-    @Shadow public abstract boolean isGliding();
+    @Invoker("handleOnClimbable")
+    protected abstract Vec3 invokeHandleOnClimbable(Vec3 velocity);
 
-    @Shadow public abstract float getYaw(float tickDelta);
+    @Shadow protected abstract float getJumpPower();
 
-    @Shadow public abstract void updateLimbs(boolean flutter);
+    @Shadow public abstract boolean onClimbable();
 
-    @Shadow public abstract float getHeadYaw();
+    @Shadow public abstract boolean isFallFlying();
 
-    @Shadow public abstract boolean isHoldingOntoLadder();
+    @Shadow protected abstract void updateWalkAnimation(float speed);
 
-    @Shadow protected abstract boolean shouldSwimInFluids();
+    @Shadow public abstract float getYHeadRot();
 
-    @Shadow public abstract boolean hasStatusEffect(RegistryEntry<StatusEffect> effect);
-    @Shadow public abstract StatusEffectInstance getStatusEffect(RegistryEntry<StatusEffect> effect);
+    @Shadow public abstract boolean hasEffect(Holder<MobEffect> effect);
+    @Shadow public abstract MobEffectInstance getEffect(Holder<MobEffect> effect);
 
     public float prevHeadYaw;
     public int stuckArrowTimer;
@@ -57,8 +61,8 @@ public abstract class LivingEntityMixin extends Entity {
     private static final float STAND_HEIGHT = 1.8f;
     private static final float CROUCH_HEIGHT = 1.35f;
 
-    public LivingEntityMixin(EntityType<?> type, World world) {
-        super(type, world);
+    public LivingEntityMixin(EntityType<?> type, Level level) {
+        super(type, level);
     }
 
     @Inject(method = "isPushable", at = @At("HEAD"), cancellable = true)
@@ -75,41 +79,41 @@ public abstract class LivingEntityMixin extends Entity {
      */
 
     @Inject(method = "travel", at = @At("HEAD"), cancellable = true)
-    public void travel(Vec3d movementInput, CallbackInfo ci) {
+    public void travel(Vec3 movementInput, CallbackInfo ci) {
         var config = ConfigWrapper.config;
         if (config == null) { return; }
         double speedCap = config.movement.speed_cap;
         if (!config.enabled) { return; }
         if (this.getType() != EntityType.PLAYER) { return; }
-        if (!this.canMoveVoluntarily() && !this.isLogicalSideForUpdatingMovement()) { return; }
-        if (this.isTouchingWater() || this.isInLava() || this.isGliding()) { return; }
+        Player player = (Player)(Object)this;
+        if (!player.canSimulateMovement()) { return; }
+        if (this.isInWater() || this.isInLava() || this.isFallFlying()) { return; }
 
-        LivingEntity self = (LivingEntity)(Object)this;
-        if (this.getType() == EntityType.PLAYER && MovementUtil.isFlying((PlayerEntity) self)) { return; }
+        if (MovementUtil.isFlying(player)) { return; }
 
         double baseFriction = config.movement.sv_friction;
-        double activeFriction = this.isSneaking() ? 0.85 : baseFriction;
+        double activeFriction = this.isShiftKeyDown() ? 0.85 : baseFriction;
 
         //Reverse multiplication done by the function that calls this one.
-        this.sidewaysSpeed /= 0.98F;
-        this.forwardSpeed /= 0.98F;
+        this.xxa /= 0.98F;
+        this.zza /= 0.98F;
         double sI = movementInput.x / 0.98F;
         double fI = movementInput.z / 0.98F;
 
         //Have no jump cooldown, why not?
-        this.jumpingCooldown = 0;
+        this.noJumpDelay = 0;
 
         //Get Slipperiness and Movement speed.
-        BlockPos blockPos = this.getVelocityAffectingPos();
-        World entityWorld = ((EntityAccessor) self).getWorldField();
-        float slipperiness = entityWorld.getBlockState(blockPos).getBlock().getSlipperiness();
+        BlockPos blockPos = this.getBlockPosBelowThatAffectsMyMovement();
+        Level entityWorld = this.level();
+        float slipperiness = entityWorld.getBlockState(blockPos).getBlock().getFriction();
         float friction = 1-(slipperiness*slipperiness);
 
         if (config.crouch_height_adjustment) {
-            boolean isCrouching = this.isSneaking();
+            boolean isCrouching = this.isShiftKeyDown();
             if (isCrouching && !wasCrouching) {
-                if (entityWorld.isSpaceEmpty(this, this.getBoundingBox().expand(0.0, STAND_HEIGHT - CROUCH_HEIGHT, 0.0))) {
-                    this.setPosition(this.getX(), this.getY() + (STAND_HEIGHT - CROUCH_HEIGHT), this.getZ());
+                if (entityWorld.noCollision(this, this.getBoundingBox().expandTowards(0.0, STAND_HEIGHT - CROUCH_HEIGHT, 0.0))) {
+                    this.setPos(this.getX(), this.getY() + (STAND_HEIGHT - CROUCH_HEIGHT), this.getZ());
                 }
             }
             wasCrouching = isCrouching;
@@ -118,10 +122,10 @@ public abstract class LivingEntityMixin extends Entity {
         //
         //Apply Friction
         //
-        boolean fullGrounded = this.wasOnGround && this.isOnGround();
+        boolean fullGrounded = this.wasOnGround && this.onGround();
         if (fullGrounded) {
-            Vec3d velFin = this.getVelocity();
-            Vec3d horFin = new Vec3d(velFin.x,0.0F,velFin.z);
+            Vec3 velFin = this.getDeltaMovement();
+            Vec3 horFin = new Vec3(velFin.x,0.0F,velFin.z);
             float speed = (float) horFin.length();
             if (speed > 0.001F) {
                 float drop = 0.0F;
@@ -130,24 +134,24 @@ public abstract class LivingEntityMixin extends Entity {
 
                 float newspeed = Math.max(speed - drop, 0.0F);
                 newspeed /= speed;
-                this.setVelocity(
+                this.setDeltaMovement(
                         horFin.x * newspeed,
                         velFin.y,
                         horFin.z * newspeed
                 );
             }
         }
-        this.wasOnGround = this.isOnGround();
+        this.wasOnGround = this.onGround();
 
         //
         // Accelerate
         //
-        float yawDifference = MathHelper.wrapDegrees(this.getHeadYaw() - this.prevHeadYaw);
+        float yawDifference = Mth.wrapDegrees(this.getYHeadRot() - this.prevHeadYaw);
         if (yawDifference < 0) {
             yawDifference = yawDifference * -1;
         }
 
-        if (!fullGrounded && !this.isClimbing()) {
+        if (!fullGrounded && !this.onClimbable()) {
             sI = sI * yawDifference;
             fI = fI * yawDifference;
         }
@@ -155,24 +159,24 @@ public abstract class LivingEntityMixin extends Entity {
         double perfectAngle = findOptimalStrafeAngle(sI, fI, config, fullGrounded);
 
         if (sI != 0.0F || fI != 0.0F) {
-            Vec3d moveDir = MovementUtil.movementInputToVelocity(new Vec3d(sI, 0.0F, fI), 1.0F, this.getYaw());
-            Vec3d accelVec = this.getVelocity();
+            Vec3 moveDir = MovementUtil.movementInputToVelocity(new Vec3(sI, 0.0F, fI), 1.0F, this.getYRot());
+            Vec3 accelVec = this.getDeltaMovement();
 
-            double projVel = new Vec3d(accelVec.x, 0.0F, accelVec.z).dotProduct(moveDir);
-            double accelVel = (this.isOnGround() ? config.movement.sv_accelerate : (config.movement.sv_airaccelerate));
+            double projVel = new Vec3(accelVec.x, 0.0F, accelVec.z).dot(moveDir);
+            double accelVel = (this.onGround() ? config.movement.sv_accelerate : (config.movement.sv_airaccelerate));
 
             float maxVel;
             double angleBetween = 0;
             if (fullGrounded) {
-                maxVel = (float) (this.movementSpeed * config.movement.speed_mul);
+                maxVel = (float) (this.speed * config.movement.speed_mul);
             } else {
-                double velVal = this.getVelocity().horizontalLength();
+                double velVal = this.getDeltaMovement().horizontalDistance();
                 if (velVal < 0 || velVal > 0)
                     maxVel = (float) (config.movement.sv_maxairspeed * ((velVal * config.movement.speed_coefficient) / velVal));
                 else
                     maxVel = (float) (config.movement.sv_maxairspeed);
 
-                angleBetween = Math.acos(accelVec.normalize().dotProduct(moveDir.normalize()));
+                angleBetween = Math.acos(accelVec.normalize().dot(moveDir.normalize()));
 
                 maxVel *= (float) (angleBetween * angleBetween * angleBetween);
             }
@@ -180,70 +184,70 @@ public abstract class LivingEntityMixin extends Entity {
             if (projVel + accelVel > maxVel) {
                 accelVel = maxVel - projVel;
             }
-            Vec3d accelDir = moveDir.multiply(Math.max(accelVel, 0.0F));
+            Vec3 accelDir = moveDir.scale(Math.max(accelVel, 0.0F));
 
-            Vec3d newVelocity = accelVec.add(accelDir);
-            Vec3d newHorizontalVelocity = newVelocity;
+            Vec3 newVelocity = accelVec.add(accelDir);
+            Vec3 newHorizontalVelocity = newVelocity;
 
-            double currentHorizontalSpeed = newHorizontalVelocity.horizontalLength();
+            double currentHorizontalSpeed = newHorizontalVelocity.horizontalDistance();
 
             if (currentHorizontalSpeed > speedCap && !fullGrounded) {
-                newHorizontalVelocity = newHorizontalVelocity.multiply(speedCap / currentHorizontalSpeed);
+                newHorizontalVelocity = newHorizontalVelocity.scale(speedCap / currentHorizontalSpeed);
             }
 
-            this.setVelocity(new Vec3d(newHorizontalVelocity.getX(), newVelocity.getY(), newHorizontalVelocity.getZ()));
+            this.setDeltaMovement(new Vec3(newHorizontalVelocity.x(), newVelocity.y(), newHorizontalVelocity.z()));
         }
 
-        this.setVelocity(this.applyClimbingSpeed(this.getVelocity()));
-        this.move(MovementType.SELF, this.getVelocity());
+        this.setDeltaMovement(this.invokeHandleOnClimbable(this.getDeltaMovement()));
+        this.move(MoverType.SELF, this.getDeltaMovement());
 
-        Vec3d preVel = this.getVelocity();
-        if ((this.horizontalCollision || this.jumping) && this.isClimbing()) {
-            preVel = new Vec3d(preVel.x * 0.7D, 0.2D, preVel.z * 0.7D);
+        Vec3 preVel = this.getDeltaMovement();
+        if ((this.horizontalCollision || this.jumping) && this.onClimbable()) {
+            preVel = new Vec3(preVel.x * 0.7D, 0.2D, preVel.z * 0.7D);
         }
 
         double yVel = preVel.y;
         double gravity = config.movement.sv_gravity;
-        if (preVel.y <= 0.0D && this.hasStatusEffect(StatusEffects.SLOW_FALLING)) {
+        if (preVel.y <= 0.0D && this.hasEffect(MobEffects.SLOW_FALLING)) {
             gravity = 0.01D;
-            this.fallDistance = 0.0F;
+            this.fallDistance = 0.0D;
         }
-        if (this.hasStatusEffect(StatusEffects.LEVITATION)) {
-            var levitation = this.getStatusEffect(StatusEffects.LEVITATION);
+        if (this.hasEffect(MobEffects.LEVITATION)) {
+            var levitation = this.getEffect(MobEffects.LEVITATION);
             if (levitation != null) {
                 yVel += (0.05D * (levitation.getAmplifier() + 1) - preVel.y) * 0.2D;
             }
-            this.fallDistance = 0.0F;
-        } else if (!entityWorld.isClient() && !entityWorld.isChunkLoaded(blockPos)) {
+            this.fallDistance = 0.0D;
+        } else if (!entityWorld.isClientSide() && !entityWorld.isLoaded(blockPos)) {
             yVel = 0.0D;
-        } else if (!this.hasNoGravity()) {
+        } else if (!this.isNoGravity()) {
             yVel -= gravity;
         }
 
-        this.setVelocity(preVel.x,yVel,preVel.z);
+        this.setDeltaMovement(preVel.x,yVel,preVel.z);
 
-        this.updateLimbs(self instanceof Flutterer);
+        this.updateWalkAnimation((float) this.getDeltaMovement().horizontalDistance());
         ci.cancel();
     }
 
     public double findOptimalStrafeAngle(double sI, double fI, MinehopConfig config, boolean fullGrounded) {
         double highestVelocity = -Double.MAX_VALUE;
         double optimalAngle = 0;
-        float currentYaw = this.getYaw();
+        float currentYaw = this.getYRot();
         for (double angle = currentYaw - 45; angle < currentYaw + 45; angle += 1) {
-            Vec3d moveDir = MovementUtil.movementInputToVelocity(new Vec3d(sI, 0.0F, fI), 1.0F, (float) angle);
-            Vec3d accelVec = this.getVelocity();
+            Vec3 moveDir = MovementUtil.movementInputToVelocity(new Vec3(sI, 0.0F, fI), 1.0F, (float) angle);
+            Vec3 accelVec = this.getDeltaMovement();
 
-            double projVel = new Vec3d(accelVec.x, 0.0F, accelVec.z).dotProduct(moveDir);
-            double accelVel = (this.isOnGround() ? config.movement.sv_accelerate : (config.movement.sv_airaccelerate));
+            double projVel = new Vec3(accelVec.x, 0.0F, accelVec.z).dot(moveDir);
+            double accelVel = (this.onGround() ? config.movement.sv_accelerate : (config.movement.sv_airaccelerate));
 
             float maxVel;
             if (fullGrounded) {
-                maxVel = (float) (this.movementSpeed * config.movement.speed_mul);
+                maxVel = (float) (this.speed * config.movement.speed_mul);
             } else {
                 maxVel = (float) (config.movement.sv_maxairspeed);
 
-                double angleBetween = Math.acos(accelVec.normalize().dotProduct(moveDir.normalize()));
+                double angleBetween = Math.acos(accelVec.normalize().dot(moveDir.normalize()));
 
                 maxVel *= (float) (angleBetween * angleBetween * angleBetween);
             }
@@ -251,12 +255,12 @@ public abstract class LivingEntityMixin extends Entity {
             if (projVel + accelVel > maxVel) {
                 accelVel = maxVel - projVel;
             }
-            Vec3d accelDir = moveDir.multiply(Math.max(accelVel, 0.0F));
+            Vec3 accelDir = moveDir.scale(Math.max(accelVel, 0.0F));
 
-            Vec3d newVelocity = accelVec.add(accelDir);
+            Vec3 newVelocity = accelVec.add(accelDir);
 
-            if (newVelocity.horizontalLength() > highestVelocity) {
-                highestVelocity = newVelocity.horizontalLength();
+            if (newVelocity.horizontalDistance() > highestVelocity) {
+                highestVelocity = newVelocity.horizontalDistance();
                 optimalAngle = angle;
             }
         }
@@ -264,26 +268,26 @@ public abstract class LivingEntityMixin extends Entity {
     }
 
     @Override
-    public EntityDimensions getDimensions(EntityPose pose) {
+    public EntityDimensions getDimensions(Pose pose) {
         EntityDimensions original = super.getDimensions(pose);
 
-        if (ConfigWrapper.config != null && ConfigWrapper.config.crouch_height_adjustment && this.isSneaking()) {
-            return EntityDimensions.changing(original.width(), CROUCH_HEIGHT);
+        if (ConfigWrapper.config != null && ConfigWrapper.config.crouch_height_adjustment && this.isShiftKeyDown()) {
+            return EntityDimensions.scalable(original.width(), CROUCH_HEIGHT);
         }
         return original;
     }
 
-    @Inject(method = "jump", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "jumpFromGround", at = @At("HEAD"), cancellable = true)
     void jump(CallbackInfo ci) {
         var config = ConfigWrapper.config;
         if (config == null) { return; }
         if (!config.enabled) { return; }
 
-        Vec3d vecFin = this.getVelocity();
-        double yVel = this.getJumpVelocity();
+        Vec3 vecFin = this.getDeltaMovement();
+        double yVel = this.getJumpPower();
 
-        this.setVelocity(vecFin.x, yVel, vecFin.z);
-        this.velocityDirty = true;
+        this.setDeltaMovement(vecFin.x, yVel, vecFin.z);
+        this.hurtMarked = true;
 
         ci.cancel();
     }

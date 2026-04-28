@@ -17,7 +17,7 @@ Minimal Meteor Client addon. Current repo only ships the active bunnyhop path.
 ### Mixins
 - `src/main/java/net/nerdorg/minehop/mixin/LivingEntityMixin.java` - movement override
 - `src/main/java/net/nerdorg/minehop/mixin/ServerPlayNetworkHandlerMixin.java` - local speed-check relax
-- `src/main/java/net/nerdorg/minehop/mixin/EntityAccessor.java` - world accessor for the movement mixin
+- `src/main/java/net/nerdorg/minehop/mixin/EntityAccessor.java` - level accessor for compatibility mixins
 
 ### Utility + Resources
 - `src/main/java/net/nerdorg/minehop/util/MovementUtil.java` - movement math helpers
@@ -44,9 +44,17 @@ If any of this returns, rebuild it for the Meteor addon directly. Do not revive 
 ./gradlew build
 ```
 
+Current target:
+- Minecraft 26.1.2
+- Meteor Client 26.1.2-SNAPSHOT
+- Fabric Loader 0.19.2
+- Fabric API 0.146.1+26.1.2
+- Loom 1.16-SNAPSHOT
+- Java 25
+
 Outputs:
 - intermediate build artifacts in `builds/`
-- remapped jars in `release/`
+- built jars in `release/`
 
 Current release task writes:
 - `release/minehop-meteor-{version}.jar`
@@ -67,7 +75,7 @@ Terminal gate:
 
 Manual smoke:
 1. Drop the latest jar into `.minecraft/mods`.
-2. Launch Minecraft with Meteor Client.
+2. Launch Minecraft 26.1.2 with current Meteor Client.
 3. Open Meteor GUI.
 4. Enable `Bunnyhopping` under Movement.
 5. Verify movement, crouch height option, collision toggle, and speed settings.
@@ -76,7 +84,7 @@ Manual smoke:
 
 - Boost blocks remain intentionally absent.
 - Legacy HUD metrics remain intentionally absent.
-- Build still shows one deprecation warning from `LivingEntityMixin` using `isChunkLoaded(BlockPos)`.
+- Gradle still reports deprecated build features from upstream plugins; build is green on Gradle 9.4.0.
 
 ## Change Rule
 

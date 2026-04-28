@@ -3,8 +3,7 @@
 
  <img src="https://img.shields.io/badge/Meteor Client Addon-6f1ab1?logo=meteor&logoColor=white"/> 
  <br>
- <img src="https://img.shields.io/badge/minecraft-26.1-red"/> 
- <img src="https://img.shields.io/badge/minecraft-1.21.11-green"/> 
+ <img src="https://img.shields.io/badge/minecraft-26.1.2-red"/>
  <img src="https://img.shields.io/badge/minecraft-1.21.10-darkgreen"/> 
 </div>
 <br/>
@@ -13,7 +12,8 @@ A [Meteor Client](https://github.com/MeteorDevelopment/meteor-client) addon that
 Based on the original [Minehop mod](https://github.com/Plaaasma/minehop-fabric-public).
 
 ## Supported versions: 
-- **Minecraft 1.21.11** ([latest](https://github.com/njlent/minehop-Meteor-client-addon/releases))
+- **Minecraft 26.1.2** ([latest](https://github.com/njlent/minehop-Meteor-client-addon/releases))
+- **Minecraft 1.21.11** ([up to v1.2.21](https://github.com/njlent/minehop-Meteor-client-addon/releases))
 - **Minecraft 1.21.10** ([up to v1.2.1](https://github.com/njlent/minehop-Meteor-client-addon/releases/tag/v1.2.1))
 
 ## Features
@@ -26,10 +26,11 @@ Based on the original [Minehop mod](https://github.com/Plaaasma/minehop-fabric-p
 ## Installation
 
 ### Prerequisites
-- Minecraft 1.21.11
-- [Fabric Loader](https://fabricmc.net/use/) 0.18.4+
-- [Fabric API](https://modrinth.com/mod/fabric-api) 0.141.3+
-- [Meteor Client](https://meteorclient.com/) 1.21.11-SNAPSHOT (build 65)
+- Minecraft 26.1.2
+- [Fabric Loader](https://fabricmc.net/use/) 0.19.2+
+- [Fabric API](https://modrinth.com/mod/fabric-api) 0.146.1+26.1.2+
+- [Meteor Client](https://meteorclient.com/) 26.1.2-SNAPSHOT
+- Java 25+
 
 
 ## Usage
