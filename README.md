@@ -13,7 +13,7 @@ A [Meteor Client](https://github.com/MeteorDevelopment/meteor-client) addon that
 Based on the original [Minehop mod](https://github.com/Plaaasma/minehop-fabric-public).
 
 ## Supported versions: 
-- **Minecraft 26.1.2** ([v1.2.22](https://github.com/njlent/minehop-Meteor-client-addon/releases/tag/v1.2.22))
+- **Minecraft 26.1.2** ([latest](https://github.com/njlent/minehop-Meteor-client-addon/releases))
 - **Minecraft 1.21.11** ([up to v1.2.21](https://github.com/njlent/Minehop-Meteor-client-addon/releases/tag/v1.2.21))
 - **Minecraft 1.21.10** ([up to v1.2.1](https://github.com/njlent/minehop-Meteor-client-addon/releases/tag/v1.2.1))
 
