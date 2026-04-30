@@ -62,3 +62,8 @@ Jump momentum fix:
 - Restored player ground acceleration source by using `getSpeed()` for bunnyhop max ground velocity. The previous port read the private `LivingEntity.speed` field directly, but 26.1.2 player movement speed is exposed through `Player.getSpeed()`.
 - Corrected the custom jump sync flag from `hurtMarked` to `needsSync`, matching the 26.1.2 vanilla jump path and the old `velocityDirty` behavior.
 - Verified with `./gradlew build --stacktrace`.
+
+Air-strafe fix:
+
+- Restored the original addon's `prevHeadYaw` field in the air-strafe yaw scaling path. The first 26.1.2 port used vanilla `yHeadRotO`, but 26.1.2 copies `yHeadRot` into `yHeadRotO` before movement travel, which collapses the old strafe multiplier and removes the A/D + mouse speed/direction change.
+- Verified with `./gradlew build --stacktrace`.

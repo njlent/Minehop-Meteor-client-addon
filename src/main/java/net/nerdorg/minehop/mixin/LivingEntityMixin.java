@@ -48,12 +48,11 @@ public abstract class LivingEntityMixin extends Entity {
 
     @Shadow public abstract float getYHeadRot();
 
-    @Shadow public float yHeadRotO;
-
     @Shadow public abstract boolean hasEffect(Holder<MobEffect> effect);
     @Shadow public abstract MobEffectInstance getEffect(Holder<MobEffect> effect);
     @Shadow public abstract float getSpeed();
 
+    public float prevHeadYaw;
     public int stuckArrowTimer;
     protected float field_6215;
 
@@ -147,7 +146,7 @@ public abstract class LivingEntityMixin extends Entity {
         //
         // Accelerate
         //
-        float yawDifference = Mth.wrapDegrees(this.getYHeadRot() - this.yHeadRotO);
+        float yawDifference = Mth.wrapDegrees(this.getYHeadRot() - this.prevHeadYaw);
         if (yawDifference < 0) {
             yawDifference = yawDifference * -1;
         }
