@@ -56,3 +56,9 @@ Verification:
 - Build output jar copied to `release/minehop-meteor-1.2.22.jar` and `release/minehop-meteor-latest.jar`.
 - Bytecode sanity check confirms `LivingEntity.travel(Vec3)`, `jumpFromGround`, `handleOnClimbable`, and server move constants `100.0f`, `300.0f`, `100.0d` exist in the 26.1.2 deobf jar.
 - Pushed all update increments to `origin/dev/26.1`.
+
+Jump momentum fix:
+
+- Restored player ground acceleration source by using `getSpeed()` for bunnyhop max ground velocity. The previous port read the private `LivingEntity.speed` field directly, but 26.1.2 player movement speed is exposed through `Player.getSpeed()`.
+- Corrected the custom jump sync flag from `hurtMarked` to `needsSync`, matching the 26.1.2 vanilla jump path and the old `velocityDirty` behavior.
+- Verified with `./gradlew build --stacktrace`.

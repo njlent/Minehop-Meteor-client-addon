@@ -30,7 +30,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityMixin extends Entity {
-    @Shadow private float speed;
     @Shadow public float xxa;
     @Shadow public float zza;
     @Shadow private int noJumpDelay;
@@ -53,6 +52,7 @@ public abstract class LivingEntityMixin extends Entity {
 
     @Shadow public abstract boolean hasEffect(Holder<MobEffect> effect);
     @Shadow public abstract MobEffectInstance getEffect(Holder<MobEffect> effect);
+    @Shadow public abstract float getSpeed();
 
     public int stuckArrowTimer;
     protected float field_6215;
@@ -169,7 +169,7 @@ public abstract class LivingEntityMixin extends Entity {
             float maxVel;
             double angleBetween = 0;
             if (fullGrounded) {
-                maxVel = (float) (this.speed * config.movement.speed_mul);
+                maxVel = (float) (this.getSpeed() * config.movement.speed_mul);
             } else {
                 double velVal = this.getDeltaMovement().horizontalDistance();
                 if (velVal < 0 || velVal > 0)
@@ -244,7 +244,7 @@ public abstract class LivingEntityMixin extends Entity {
 
             float maxVel;
             if (fullGrounded) {
-                maxVel = (float) (this.speed * config.movement.speed_mul);
+                maxVel = (float) (this.getSpeed() * config.movement.speed_mul);
             } else {
                 maxVel = (float) (config.movement.sv_maxairspeed);
 
@@ -288,7 +288,7 @@ public abstract class LivingEntityMixin extends Entity {
         double yVel = this.getJumpPower();
 
         this.setDeltaMovement(vecFin.x, yVel, vecFin.z);
-        this.hurtMarked = true;
+        this.needsSync = true;
 
         ci.cancel();
     }
