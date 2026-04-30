@@ -49,7 +49,7 @@ Outputs:
 - remapped jars in `release/`
 
 Current release task writes:
-- `release/minehop-meteor-{version}.jar`
+- `release/minehop-meteor-{mod-version}+{minecraft-version}.jar`
 - `release/minehop-meteor-latest.jar`
 
 GitHub Actions dev builds publish to the `snapshot` prerelease tag.

@@ -5,9 +5,13 @@ plugins {
 // Set build directory to local filesystem to avoid network drive issues
 layout.buildDirectory = file("builds")
 
+val minecraftVersion = libs.versions.minecraft.get()
+val modVersion = libs.versions.mod.version.get()
+val releaseVersion = "$modVersion+$minecraftVersion"
+
 base {
     archivesName = properties["archives_base_name"] as String
-    version = libs.versions.mod.version.get()
+    version = releaseVersion
     group = properties["maven_group"] as String
 }
 
