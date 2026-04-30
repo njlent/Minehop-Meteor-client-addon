@@ -24,7 +24,33 @@ Progress:
 
 - [x] Created update log.
 - [x] Verified target Fabric coordinates from current upstream metadata.
-- [ ] Update Gradle dependency/toolchain targets.
-- [ ] Fix Minecraft/Meteor API compile breaks.
-- [ ] Run full build gate.
-- [ ] Push completed commits.
+- [x] Update Gradle dependency/toolchain targets.
+- [x] Fix Minecraft/Meteor API compile breaks.
+- [x] Run full build gate.
+- [x] Push completed commits.
+
+Build metadata changes:
+
+- Switched to Loom `1.16-SNAPSHOT` with plugin id `net.fabricmc.fabric-loom`.
+- Switched Minecraft/Fabric/Meteor coordinates to 26.1.2 target stack.
+- Removed Yarn dependency; 26.1.2 Fabric example uses Mojang-named Minecraft sources directly.
+- Set Java compile/toolchain target to 25 and expanded mod metadata placeholders.
+- Bumped Gradle wrapper from `9.2.0` to `9.4.0`; Loom `1.16-SNAPSHOT` requires plugin API `9.4.0`.
+- Updated `publishEasyJar` to copy `jar`; Loom 1.16 setup has no `remapJar` task here.
+
+Source port notes:
+
+- Ported Minecraft imports from Yarn names to Mojang names.
+- Mapped movement vectors `Vec3d` -> `Vec3`, `MathHelper` -> `Mth`, and velocity methods to `getDeltaMovement`/`setDeltaMovement`.
+- Mapped player/network classes to `Player` and `ServerGamePacketListenerImpl`.
+- Preserved current movement mechanics:
+  - friction/acceleration/gravity formulas unchanged;
+  - no jump cooldown still sets the new `noJumpDelay` field to `0`;
+  - crouch height adjustment still raises by `STAND_HEIGHT - CROUCH_HEIGHT`;
+  - custom jump still cancels vanilla jump and keeps horizontal velocity;
+  - entity collision toggle still cancels player pushability.
+
+Verification:
+
+- `./gradlew build --stacktrace` passes with Gradle 9.4.0 and JDK 25 toolchain.
+- Build output jar copied to `release/minehop-meteor-1.2.22.jar` and `release/minehop-meteor-latest.jar`.

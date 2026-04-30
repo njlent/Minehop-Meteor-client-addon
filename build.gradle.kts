@@ -29,19 +29,20 @@ repositories {
 dependencies {
     // Fabric
     minecraft(libs.minecraft)
-    mappings(variantOf(libs.yarn) { classifier("v2") })
-    modImplementation(libs.fabric.loader)
-    modImplementation(libs.fabric.api)
+    implementation(libs.fabric.loader)
+    implementation(libs.fabric.api)
 
     // Meteor
-    modImplementation(libs.meteor.client)
+    implementation(libs.meteor.client)
 }
 
 tasks {
     processResources {
         val propertyMap = mapOf(
             "version" to project.version,
-            "mc_version" to libs.versions.minecraft.get()
+            "mc_version" to libs.versions.minecraft.get(),
+            "loader_version" to libs.versions.fabric.loader.get(),
+            "jdk_version" to libs.versions.jdk.get()
         )
 
         inputs.properties(propertyMap)
@@ -61,26 +62,30 @@ tasks {
         }
     }
 
-    java {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
-    }
-
     withType<JavaCompile> {
         options.encoding = "UTF-8"
-        options.release = 21
+        options.release = libs.versions.jdk.get().toInt()
         options.compilerArgs.add("-Xlint:deprecation")
         options.compilerArgs.add("-Xlint:unchecked")
     }
 }
 
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(libs.versions.jdk.get().toInt()))
+    }
+
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
+}
+
 val publishEasyJar by tasks.registering {
     group = "build"
-    description = "Copies the remapped jar into ./release for easy access."
-    dependsOn("remapJar")
+    description = "Copies the built jar into ./release for easy access."
+    dependsOn("jar")
     doLast {
-        val remapJarTask = tasks.named<org.gradle.jvm.tasks.Jar>("remapJar").get()
-        val jarFile = remapJarTask.archiveFile.get().asFile
+        val jarTask = tasks.named<org.gradle.jvm.tasks.Jar>("jar").get()
+        val jarFile = jarTask.archiveFile.get().asFile
         val releaseDir = layout.projectDirectory.dir("release").asFile
         releaseDir.mkdirs()
 
