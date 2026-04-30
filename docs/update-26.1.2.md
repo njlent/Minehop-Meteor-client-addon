@@ -55,4 +55,4 @@ Verification:
 - `./gradlew build --stacktrace` passes with Gradle 9.4.0 and JDK 25 toolchain.
 - Build output jar copied to `release/minehop-meteor-1.2.22.jar` and `release/minehop-meteor-latest.jar`.
 - Bytecode sanity check confirms `LivingEntity.travel(Vec3)`, `jumpFromGround`, `handleOnClimbable`, and server move constants `100.0f`, `300.0f`, `100.0d` exist in the 26.1.2 deobf jar.
-- Pushed increments: `b9638af` (`docs: track 26.1.2 update`), `ba595fb` (`feat: support minecraft 26.1.2`).
+- Pushed all update increments to `origin/dev/26.1`.
