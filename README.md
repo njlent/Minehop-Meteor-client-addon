@@ -98,4 +98,12 @@ All settings can be adjusted in the Meteor GUI under Movement > Bunnyhopping:
 >       <a href="https://github.com/njlent/Wurstmeteor-Meteor-client-addon">WurstMeteor Addon - ports selected Wurst Client features</a>
 >     </td>
 >   </tr>
+>   <tr>
+>     <td valign="middle">
+>       <img src="https://raw.githubusercontent.com/njlent/Damagenumbers-Meteor-client-addon/refs/heads/master/img/icon.png" width="50" alt="DamageNumbers Addon icon">
+>     </td>
+>     <td valign="middle">
+>       <a href="https://github.com/njlent/Damagenumbers-Meteor-client-addon">DamageNumbers Addon - damage numbers and particles</a>
+>     </td>
+>   </tr>
 > </table>
