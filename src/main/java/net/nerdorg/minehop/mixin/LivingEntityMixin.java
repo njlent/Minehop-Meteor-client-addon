@@ -11,6 +11,7 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.Pose;
@@ -68,7 +69,7 @@ public abstract class LivingEntityMixin extends Entity {
     @Inject(method = "isPushable", at = @At("HEAD"), cancellable = true)
     public void isPushable(CallbackInfoReturnable<Boolean> cir) {
         var config = ConfigWrapper.config;
-        if (config != null && config.enabled && !config.entity_collisions && this.getType() == EntityType.PLAYER) {
+        if (config != null && config.enabled && !config.entity_collisions && this.getType() == EntityTypes.PLAYER) {
             cir.setReturnValue(false);
         }
     }
@@ -84,7 +85,7 @@ public abstract class LivingEntityMixin extends Entity {
         if (config == null) { return; }
         double speedCap = config.movement.speed_cap;
         if (!config.enabled) { return; }
-        if (this.getType() != EntityType.PLAYER) { return; }
+        if (this.getType() != EntityTypes.PLAYER) { return; }
         Player player = (Player)(Object)this;
         if (!player.canSimulateMovement()) { return; }
         if (this.isInWater() || this.isInLava() || this.isFallFlying()) { return; }

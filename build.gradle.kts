@@ -8,11 +8,13 @@ layout.buildDirectory = file("builds")
 val minecraftVersion = libs.versions.minecraft.get()
 val modVersion = libs.versions.mod.version.get()
 val releaseVersion = "$modVersion+$minecraftVersion"
+val archivesBaseName = providers.gradleProperty("archives_base_name").get()
+val mavenGroup = providers.gradleProperty("maven_group").get()
 
 base {
-    archivesName = properties["archives_base_name"] as String
+    archivesName = archivesBaseName
     version = releaseVersion
-    group = properties["maven_group"] as String
+    group = mavenGroup
 }
 
 repositories {
@@ -83,7 +85,7 @@ java {
     targetCompatibility = JavaVersion.VERSION_25
 }
 
-val publishEasyJar by tasks.registering {
+val publishEasyJar = tasks.register("publishEasyJar") {
     group = "build"
     description = "Copies the built jar into ./release for easy access."
     dependsOn("jar")
@@ -96,7 +98,7 @@ val publishEasyJar by tasks.registering {
         val versionedTarget = releaseDir.resolve(jarFile.name)
         jarFile.copyTo(versionedTarget, overwrite = true)
 
-        val latestTarget = releaseDir.resolve("${project.base.archivesName.get()}-latest.jar")
+        val latestTarget = releaseDir.resolve("$archivesBaseName-latest.jar")
         jarFile.copyTo(latestTarget, overwrite = true)
 
         logger.lifecycle("Copied versioned jar to: ${versionedTarget.absolutePath}")
